@@ -19,118 +19,91 @@ const USAGE_LIMITS = {
 /**
  * --- MANEJADOR DE ENTRADA (PUENTE + APP) ---
  */
+/**
+ * --- MANEJADOR DE ENTRADA ROBUSTO ---
+ */
 function doGet(e) {
-  // 1. VISTA BRIDGE: Soporte para comunicación segura (POST-less & CORS-free)
-  if (e && e.parameter && e.parameter.view === 'bridge') {
-    let result = null;
-    let error = null;
-    const method = e.parameter.method;
-    const reqId = e.parameter.reqId;
-    
-    if (method) {
+  try {
+    // 1. VISTA BRIDGE: Soporte para comunicación segura (POST-less & CORS-free)
+    if (e && e.parameter && e.parameter.view === 'bridge') {
+      var result = null;
+      var error = null;
+      var method = e.parameter.method;
+      var reqId = e.parameter.reqId;
+      
+      if (method) {
+        try {
+          var args = JSON.parse(e.parameter.args || "[]");
+          var methodMap = {
+            'getInitialData': getInitialData, 'uploadFile': uploadFile, 'getImages': getImages,
+            'getImagesByType': getImagesByType, 'registrarVisita': registrarVisita,
+            'registerLike': registerLike, 'getPolaroidLink': getPolaroidLink,
+            'solicitarEliminacion': solicitarEliminacion, 'getPerfilesFull': getPerfilesFull,
+            'getPerfilesUI': getPerfilesFull, 'crearNuevoEvento': crearNuevoEvento,
+            'guardarPerfilActual': guardarPerfilActual, 'getEventoExtraDetails': getEventoExtraDetails,
+            'actualizarTimer': actualizarTimer, 'controlTimer': controlTimer,
+            'uploadBrandingAsset': uploadBrandingAsset, 'discoverAndSyncEvents': discoverAndSyncEvents,
+            'getBackgroundsForDownload': getBackgroundsForDownload, 'repairAllAssetSharing': repairAllAssetSharing,
+            'resetGeneralCache': resetGeneralCache, 'syncEventBranding': syncEventBranding
+          };
+          
+          if (methodMap[method]) {
+            result = methodMap[method].apply(null, args);
+          } else {
+            error = "Metodo no autorizado via bridge: " + method;
+          }
+        } catch (err) {
+          error = err.toString();
+        }
+      }
+
+      var response = { id: reqId || "init", result: result, error: error };
+      var html = '<!DOCTYPE html><html><head><script>' +
+                 '(function(){ ' +
+                 'var resp = ' + JSON.stringify(response) + '; ' +
+                 'window.parent.postMessage(resp, "*"); ' +
+                 'if(window.top !== window.self) try { window.top.postMessage(resp, "*"); } catch(e){}' +
+                 '})();' +
+                 '</script></head><body><p style="color:#eee;font-family:sans-serif;font-size:9px;">3PayaresTV Bridge Active</p></body></html>';
+      
+      return HtmlService.createHtmlOutput(html)
+        .setTitle("3PayaresTV Bridge")
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+
+    // 2. MODO API (JSONP): Retrocompatibilidad
+    if (e && e.parameter && e.parameter.callback) {
+      var callback = e.parameter.callback;
+      var method = e.parameter.method;
+      var args = JSON.parse(e.parameter.args || "[]");
       try {
-        const args = JSON.parse(e.parameter.args || "[]");
-        
-        const methodMap = {
-          'getInitialData': getInitialData,
-          'uploadFile': uploadFile,
-          'getImages': getImages,
-          'getImagesByType': getImagesByType,
-          'registrarVisita': registrarVisita,
-          'registerLike': registerLike,
-          'getPolaroidLink': getPolaroidLink,
-          'solicitarEliminacion': solicitarEliminacion,
-          'getPerfilesFull': getPerfilesFull,
-          'getPerfilesUI': getPerfilesFull,
-          'crearNuevoEvento': crearNuevoEvento,
-          'guardarPerfilActual': guardarPerfilActual,
-          'getEventoExtraDetails': getEventoExtraDetails,
-          'actualizarTimer': actualizarTimer,
-          'controlTimer': controlTimer,
-          'uploadBrandingAsset': uploadBrandingAsset,
-          'discoverAndSyncEvents': discoverAndSyncEvents,
-          'getBackgroundsForDownload': getBackgroundsForDownload,
-          'repairAllAssetSharing': repairAllAssetSharing,
-          'resetGeneralCache': resetGeneralCache,
+        var methodMap = {
+          'getInitialData': getInitialData, 'uploadFile': uploadFile, 'getImages': getImages,
+          'getImagesByType': getImagesByType, 'registrarVisita': registrarVisita,
+          'registerLike': registerLike, 'getPolaroidLink': getPolaroidLink,
+          'solicitarEliminacion': solicitarEliminacion, 'getPerfilesFull': getPerfilesFull,
+          'crearNuevoEvento': crearNuevoEvento, 'guardarPerfilActual': guardarPerfilActual,
+          'getEventoExtraDetails': getEventoExtraDetails, 'actualizarTimer': actualizarTimer,
+          'controlTimer': controlTimer, 'uploadBrandingAsset': uploadBrandingAsset,
+          'discoverAndSyncEvents': discoverAndSyncEvents, 'getBackgroundsForDownload': getBackgroundsForDownload,
+          'repairAllAssetSharing': repairAllAssetSharing, 'resetGeneralCache': resetGeneralCache,
           'syncEventBranding': syncEventBranding
         };
-        
         if (methodMap[method]) {
-          result = methodMap[method].apply(null, args);
-        } else {
-          error = "Method not authorized via bridge: " + method;
+          var res = methodMap[method].apply(null, args);
+          return ContentService.createTextOutput(callback + "(" + JSON.stringify(res) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
         }
-      } catch (err) {
-        error = err.toString();
+      } catch(err) {
+        return ContentService.createTextOutput(callback + "(" + JSON.stringify({error: err.toString()}) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
       }
     }
 
-    return HtmlService.createHtmlOutput(`
-      <!DOCTYPE html><html><head><script>
-        const response = { 
-          id: ${JSON.stringify(reqId || "init")}, 
-          result: ${JSON.stringify(result)}, 
-          error: ${JSON.stringify(error)} 
-        };
-        window.parent.postMessage(response, "*");
-      </script></head><body><p style="color:grey;font-family:sans-serif;font-size:10px;">Bridge Active: ${method || 'Ready'}</p></body></html>
-    `).setTitle("3PayaresTV Bridge").setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  }
+    // 3. PANTALLA DE ESTADO / FALLBACK
+    return HtmlService.createHtmlOutput("<h1>ShareMoments API: Activa</h1><p>El motor de comunicacion Bridge esta listo. Usa la interfaz local.</p>")
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 
-  // 2. MODO API (JSONP): Retrocompatibilidad para Invitados y Galería
-  if (e && e.parameter && e.parameter.callback) {
-    const callback = e.parameter.callback;
-    const method = e.parameter.method;
-    const args = JSON.parse(e.parameter.args || "[]");
-    try {
-      const methodMap = {
-        'getInitialData': getInitialData,
-        'uploadFile': uploadFile,
-        'getImages': getImages,
-        'getImagesByType': getImagesByType,
-        'registrarVisita': registrarVisita,
-        'registerLike': registerLike,
-        'getPolaroidLink': getPolaroidLink,
-        'solicitarEliminacion': solicitarEliminacion,
-        'getPerfilesFull': getPerfilesFull,
-        'getPerfilesUI': getPerfilesFull,
-        'crearNuevoEvento': crearNuevoEvento,
-        'guardarPerfilActual': guardarPerfilActual,
-        'getEventoExtraDetails': getEventoExtraDetails,
-        'actualizarTimer': actualizarTimer,
-        'controlTimer': controlTimer,
-        'uploadBrandingAsset': uploadBrandingAsset,
-        'discoverAndSyncEvents': discoverAndSyncEvents,
-        'getBackgroundsForDownload': getBackgroundsForDownload,
-        'repairAllAssetSharing': repairAllAssetSharing,
-        'resetGeneralCache': resetGeneralCache,
-        'syncEventBranding': syncEventBranding
-      };
-      if (methodMap[method]) {
-        const result = methodMap[method].apply(null, args);
-        return ContentService.createTextOutput(callback + "(" + JSON.stringify(result) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-      }
-    } catch(err) {
-      return ContentService.createTextOutput(callback + "(" + JSON.stringify({error: err.toString()}) + ")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-    }
-  }
-
-  // 3. CARGA DE APP (INDEX)
-  try {
-    const template = HtmlService.createTemplateFromFile('index');
-    template.eventIdParam = (e && e.parameter) ? (e.parameter.e || e.parameter.id || "") : "";
-    return template.evaluate()
-        .setTitle("ShareMoments - Live")
-        .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  } catch(err) {
-    // FALLBACK: Si no existe 'index', cargar 'welcome'
-    const template = HtmlService.createTemplateFromFile('welcome');
-    template.eventIdParam = (e && e.parameter) ? (e.parameter.e || e.parameter.id || "") : "";
-    return template.evaluate()
-        .setTitle("ShareMoments - Bienvenida")
-        .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch (globalErr) {
+    return HtmlService.createHtmlOutput("<h1>Error Critico</h1><p>" + globalErr.toString() + "</p>");
   }
 }
 
