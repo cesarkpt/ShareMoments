@@ -84,9 +84,14 @@
         <section class="space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="font-headline font-black text-xs uppercase tracking-[0.2em] text-obsidian/40">Event Hub</h2>
-                <button onclick="forceSyncProfiles()" id="sync-btn" class="text-obsidian/20 hover:text-obsidian transition-colors">
-                    <span class="material-symbols-outlined text-lg">sync</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="repairSharing()" title="Reparar permisos 403 en assets" class="text-obsidian/20 hover:text-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-lg">shield_with_heart</span>
+                    </button>
+                    <button onclick="forceSyncProfiles()" id="sync-btn" class="text-obsidian/20 hover:text-obsidian transition-colors">
+                        <span class="material-symbols-outlined text-lg">sync</span>
+                    </button>
+                </div>
             </div>
             <div class="flex gap-3">
                 <select id="event-selector" onchange="switchEvent()" class="flex-grow bg-white border border-outline rounded-2xl px-5 py-4 text-sm font-bold shadow-sm outline-none appearance-none">
@@ -105,15 +110,39 @@
                         <span class="text-[10px] text-obsidian/20 font-bold">Assets</span>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-[2rem] border border-outline shadow-sm space-y-2 group cursor-pointer" onclick="openQR()">
-                    <span class="text-[8px] font-black uppercase tracking-widest text-obsidian/30 block">Live Preview</span>
-                    <div class="flex items-center gap-2 text-gilt">
-                        <span class="material-symbols-outlined">qr_code_2</span>
-                        <span class="text-[10px] font-bold uppercase">Ver QR</span>
+                <div class="bg-white p-5 rounded-[2rem] border border-outline shadow-sm space-y-2 group cursor-pointer hover:border-gilt transition-all" onclick="openQR()">
+                    <span class="text-[8px] font-black uppercase tracking-widest text-obsidian/30 block">Difusión Activa</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-gilt">
+                            <span class="material-symbols-outlined text-xl">qr_code_2</span>
+                            <span class="text-[10px] font-bold uppercase">Código QR</span>
+                        </div>
+                        <span class="material-symbols-outlined text-obsidian/20 text-sm group-hover:text-gilt">download</span>
                     </div>
                 </div>
             </div>
+
+            <!-- Service Level Selector -->
+            <div class="bg-white p-6 rounded-[2.5rem] border border-outline shadow-sm space-y-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-obsidian flex items-center justify-center text-gilt shadow-lg">
+                        <span class="material-symbols-outlined text-lg">workspace_premium</span>
+                    </div>
+                    <div class="flex-grow">
+                        <select id="usage-tier" class="w-full bg-surface border-none rounded-xl px-2 py-2 text-[10px] font-black uppercase tracking-wider outline-none ring-1 ring-outline focus:ring-gilt appearance-none text-center">
+                            <option value="1">Nivel 1 (10 Fotos)</option>
+                            <option value="2">Nivel 2 (30 Fotos)</option>
+                            <option value="3">Nivel 3 (Ilimitadas)</option>
+                            <option value="4">Nivel 4 (Master 150)</option>
+                            <option value="5">Nivel 5 (Elite 250)</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="text-[7px] font-black text-obsidian/20 uppercase tracking-[0.2em] text-center border-t border-outline pt-3">Límite de fotos por invitado</p>
+            </div>
         </section>
+
+        <!-- Navigation Tabs -->
 
         <!-- Navigation Tabs -->
         <nav class="flex bg-white/50 p-1.5 rounded-2xl border border-outline">
@@ -210,13 +239,24 @@
                             <input id="input-bg-color" oninput="updateMockup()" type="color" class="w-full h-14 rounded-2xl bg-surface border-none p-1 cursor-pointer" value="#0A0A0A"/>
                         </div>
                         <div class="space-y-3">
-                            <label for="preset-font" class="text-[8px] uppercase tracking-widest text-obsidian/30 block ml-2">Tipografía</label>
+                            <label for="preset-font" class="text-[8px] uppercase tracking-widest text-obsidian/30 block ml-2">Tipografía Base</label>
                             <select id="preset-font" class="w-full bg-surface border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none appearance-none ring-1 ring-outline text-center">
                                 <option value="Inter">Moderna (Inter)</option>
                                 <option value="Outfit">Elegante Sans (Outfit)</option>
                                 <option value="Montserrat">Corporativa (Montserrat)</option>
                                 <option value="Playfair Display">Lujo Serif (Playfair)</option>
                                 <option value="Cormorant Garamond">Clásica (Cormorant)</option>
+                                <option value="Great Vibes">Manuscrita (Great Vibes)</option>
+                                <option value="Permanent Marker">Urbana (Marker)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-3">
+                            <label for="preset-font-title" class="text-[8px] uppercase tracking-widest text-obsidian/30 block ml-2">Tipografía Título</label>
+                            <select id="preset-font-title" class="w-full bg-surface border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none appearance-none ring-1 ring-outline text-center">
+                                <option value="Inter">Moderna (Inter)</option>
+                                <option value="Outfit">Elegante (Outfit)</option>
+                                <option value="Epilogue">Impulsiva (Epilogue)</option>
+                                <option value="Playfair Display">Lujo Serif (Playfair)</option>
                                 <option value="Great Vibes">Manuscrita (Great Vibes)</option>
                                 <option value="Permanent Marker">Urbana (Marker)</option>
                             </select>
@@ -346,6 +386,27 @@
         </div>
     </footer>
 
+    <!-- QR ADMIN MODAL -->
+    <div id="qr-admin-modal" class="fixed inset-0 z-[10000] bg-obsidian/95 backdrop-blur-xl hidden flex-col items-center justify-center p-6 transition-all duration-300">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 space-y-8 shadow-2xl text-center">
+            <h3 class="text-obsidian font-headline font-black text-xs uppercase tracking-[0.2em]">Kit de Difusión Activa</h3>
+            <div class="bg-surface p-4 rounded-3xl border border-outline inline-block mx-auto">
+                <img id="qr-admin-img" class="w-48 h-48" src=""/>
+            </div>
+            <div class="space-y-4">
+                <p class="text-[9px] font-black uppercase tracking-widest text-obsidian/30">URL del Evento</p>
+                <a id="qr-admin-link" href="#" target="_blank" class="block text-[10px] font-bold text-gilt break-all hover:underline underline-offset-4 line-clamp-2">...</a>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="downloadQR()" class="w-full py-5 bg-obsidian text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined text-sm">download</span>
+                    Descargar QR (PNG)
+                </button>
+                <button onclick="document.getElementById('qr-admin-modal').classList.add('hidden'); document.getElementById('qr-admin-modal').classList.remove('flex'); " class="w-full py-2 text-obsidian/20 text-[9px] font-black uppercase tracking-[0.4em]">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modals -->
     <div id="loading-overlay" class="fixed inset-0 bg-obsidian z-[9999] flex flex-col items-center justify-center gap-8 transition-opacity duration-500">
         <div class="relative w-32 h-32">
@@ -360,7 +421,7 @@
 
     <script>
         const ADMIN_PASS = "Mauro3dp*";
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxBNbFfNciu8gixvEy-ZXxyEpzrY9KJzM7BMjRyGuhfSIUeGxYWWh60_HBwFh1Di6Nn/exec"; 
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec"; 
 
         // 1. ESCUCHA DE RESPUESTAS (Desde Iframe o JSONP)
         const pendingRequests = new Map();
@@ -373,51 +434,39 @@
             }
         });
 
-        // 2. PROXY UNIVERSAL (Combina JSONP para GET y Form para POST)
+        function callGAS(method, args) {
+            return new Promise((resolve, reject) => {
+                const cbName = 'gasCb_' + Date.now() + Math.floor(Math.random() * 1000);
+                const timeout = setTimeout(() => {
+                    delete window[cbName];
+                    reject(new Error('Timeout: El servidor tardó demasiado (15s)'));
+                }, 15000);
+
+                window[cbName] = (res) => {
+                    clearTimeout(timeout);
+                    delete window[cbName];
+                    if (res && res.error) reject(new Error(res.error));
+                    else resolve(res);
+                };
+
+                const scriptUrl = `${GAS_API_URL}?callback=${cbName}&method=${method}&args=${encodeURIComponent(JSON.stringify(args || []))}&v=${Date.now()}`;
+                const s = document.createElement('script');
+                s.src = scriptUrl;
+                s.onerror = () => {
+                    clearTimeout(timeout);
+                    delete window[cbName];
+                    console.error("Fallo de carga de script (JSONP):", scriptUrl);
+                    reject(new Error(`Error de conexión con el servidor.\nVerifica tu conexión o si la URL de GAS en el panel es correcta.`));
+                };
+                document.body.appendChild(s);
+                // Limpieza del DOM
+                setTimeout(() => { if(s.parentNode) s.parentNode.removeChild(s); }, 16000);
+            });
+        }
+
+        // Mantener google.script.run funcional si está disponible (en GAS deployed)
         if (typeof google === 'undefined' || !google.script) {
-            window.google = { script: { run: (function(){
-                const buildProxy = (h = {}) => new Proxy({}, {
-                    get: (t, p) => {
-                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
-                        if (p === 'withFailureHandler') return (fh) => buildProxy({ ...h, failure: fh });
-                        return function(...args) {
-                            const id = "br_" + Date.now() + "_" + Math.floor(Math.random()*1000);
-                            pendingRequests.set(id, { 
-                                resolve: (res) => { if(h.success) h.success(res); }, 
-                                reject: (err) => { if(h.failure) h.failure(err); } 
-                            });
-                            
-                            // Método JSONP (Evita errores 403, bloqueos de Iframe y Políticas Cruzadas)
-                            const s = document.createElement("script");
-                            s.src = GAS_API_URL + "?callback=window.bridgeCallback_" + id + "&method=" + p + "&args=" + encodeURIComponent(JSON.stringify(args));
-                            
-                            window["bridgeCallback_" + id] = (res) => {
-                                delete window["bridgeCallback_" + id];
-                                if(res && res.error) {
-                                    if(h.failure) h.failure(res.error);
-                                } else {
-                                    if(h.success) h.success(res);
-                                }
-                                if(s.parentNode) s.parentNode.removeChild(s);
-                            };
-
-                            s.crossOrigin = "anonymous";
-                            document.body.appendChild(s);
-                            
-                            // Timeout de protección acelerado para Microsoft Edge
-                            const fallbackTimer = setTimeout(() => { 
-                                if(s.parentNode) {
-                                    s.parentNode.removeChild(s);
-                                    if(h.failure) h.failure("Edge Tracking Prevention Block");
-                                }
-                            }, 5000);
-
-                            s.onload = () => clearTimeout(fallbackTimer);
-                        };
-                    }
-                });
-                return buildProxy();
-            })() } };
+            window.google = { script: { run: {} } };
         }
 
         async function subirActivo(type) {
@@ -443,13 +492,12 @@
             
             reader.onload = async (e) => {
                 const base64 = e.target.result.split(',')[1];
-                const reqId = "up_" + Date.now();
 
                 // Motor Fetch Text/Plain Puro (Bypass CORS y límites form) + Miniatura Instantánea
                 try {
                     btn.innerText = "GUARDANDO...";
                     
-                    // 1. Mostrar miniatura Inmediata
+                    // 1. Mostrar miniatura Inmediata (desde dataURL local)
                     const previewMap = {
                         'hero': 'adminHeroPreview', 'background': 'adminBgPreview',
                         'watermark': 'adminWatermarkPreview', 'ticker': 'adminTickerPreview'
@@ -465,7 +513,7 @@
                         }
                     }
 
-                    // 2. Envío sin dolor (Omitiendo 302/IFRAME que fallaban)
+                    // 2. Envío no-cors al GAS (fire & forward)
                     const payload = JSON.stringify({
                         method: 'uploadBrandingAsset',
                         args: [ADMIN_PASS, base64, file.name, activeEventId, type]
@@ -478,7 +526,60 @@
                         body: payload
                     });
 
-                    alert(`¡${type.toUpperCase()} enviado exitosamente a la nube!`);
+                    btn.innerText = "VERIFICANDO...";
+
+                    // 3. Esperar que GAS procese (no-cors = sin confirmación directa)
+                    await new Promise(r => setTimeout(r, 4000));
+                    try {
+                        // PASO A: Reparar permisos del archivo recién subido
+                        // (el setSharing del no-cors puede no haberse confirmado)
+                        btn.innerText = "REPARANDO PERMISOS...";
+                        try {
+                            await callGAS('repairAllAssetSharing', [ADMIN_PASS]);
+                        } catch(repairErr) {
+                            console.warn('repairAllAssetSharing no disponible (¿publicaste el nuevo Code.gs?)', repairErr);
+                        }
+
+                        // PASO B: Obtener URLs frescas del servidor
+                        btn.innerText = "SINCRONIZANDO...";
+                        const fresh = await callGAS('getInitialData', [activeEventId]);
+                        if (fresh) {
+                            if (fresh.heroImageUrl)  localStorage.setItem('heroImageUrl',  fresh.heroImageUrl);
+                            if (fresh.bgImageUrl)    localStorage.setItem('bgImageUrl',    fresh.bgImageUrl);
+                            if (fresh.watermarkUrl)  localStorage.setItem('watermarkUrl',  fresh.watermarkUrl);
+
+                            const urlMap = {
+                                'hero':       fresh.heroImageUrl,
+                                'background': fresh.bgImageUrl,
+                                'watermark':  fresh.watermarkUrl,
+                                'ticker':     fresh.tickerUrl
+                            };
+                            const serverUrl = urlMap[type];
+                            if (serverUrl && previewMap[type]) {
+                                const previewImg = document.getElementById(previewMap[type]);
+                                if (previewImg) {
+                                    // Usar miniatura ligera sz=w100 para el panel de admin
+                                    const thumbUrl = (serverUrl.includes('drive.google.com/thumbnail')) 
+                                        ? serverUrl.replace('sz=w2000', 'sz=w100')
+                                        : serverUrl;
+                                        
+                                    const testImg = new Image();
+                                    testImg.onload = () => {
+                                        previewImg.src = thumbUrl;
+                                    };
+                                    testImg.onerror = () => {
+                                        console.warn('Miniatura no disponible aún:', thumbUrl);
+                                    };
+                                    testImg.src = thumbUrl;
+                                }
+                            }
+
+                        }
+                    } catch(verifyErr) {
+                        console.warn('No se pudo verificar post-upload:', verifyErr);
+                    }
+
+                    alert(`✅ ${type.toUpperCase()} guardado en Drive.\nSi el preview se ve vacío, recarga en 10s para que el CDN de Google propague.`);
 
                 } catch (err) {
                     console.error("Upload Error:", err);
@@ -525,52 +626,70 @@
 
         async function loadDashboard() {
             switchTab('timer');
-            google.script.run.withFailureHandler(err => {
-                console.error(err);
-                alert("Error cargando perfiles: " + err);
-                document.getElementById('active-event-indicator').innerText = "Error (Ver Consola)";
-            }).withSuccessHandler(data => {
+            try {
+                const data = await callGAS('getPerfilesFull', [ADMIN_PASS]);
                 if(data && data.perfiles) {
                     globalPerfiles = data.perfiles;
                     const active = data.activo || "General";
                     const selector = document.getElementById('event-selector');
-                    selector.innerHTML = Object.keys(globalPerfiles).map(id => 
+                    selector.innerHTML = Object.keys(globalPerfiles).map(id =>
                         `<option value="${id}" ${id === active ? 'selected' : ''}>${globalPerfiles[id].eventName || id}</option>`
                     ).join('');
-                    
                     document.getElementById('loading-overlay').style.opacity = '0';
-                    setTimeout(() => document.getElementById('loading-overlay').remove(), 500);
-                    
+                    setTimeout(() => { try { document.getElementById('loading-overlay').remove(); } catch(e) {} }, 500);
                     switchEvent();
                 } else {
-                    forceSyncProfiles();
+                    throw new Error('Sin datos de perfiles en respuesta');
                 }
-            }).getPerfilesFull(ADMIN_PASS);
+            } catch(err) {
+                console.error('loadDashboard error:', err);
+                try { document.getElementById('loading-overlay').style.opacity = '0'; } catch(e) {}
+                setTimeout(() => { try { document.getElementById('loading-overlay').remove(); } catch(e) {} }, 500);
+                document.getElementById('active-event-indicator').innerText = '\u274C ' + err.message;
+                alert('Error al cargar panel:\n' + err.message);
+            }
         }
 
-        function forceSyncProfiles() {
+        async function repairSharing() {
+            const btn = document.querySelector('[onclick="repairSharing()"]');
+            if (btn) btn.classList.add('animate-spin');
+            try {
+                const res = await callGAS('repairAllAssetSharing', [ADMIN_PASS]);
+                if (btn) btn.classList.remove('animate-spin');
+                alert(`✅ Permisos reparados: ${res.fixed} assets corregidos${res.failed > 0 ? ', ' + res.failed + ' fallidos (ver log GAS)' : '.'}`);
+                // Limpiar cache del servidor también
+                await callGAS('resetGeneralCache', [ADMIN_PASS]).catch(() => {});
+            } catch(err) {
+                if (btn) btn.classList.remove('animate-spin');
+                alert('Error al reparar: ' + err);
+            }
+        }
+
+        async function forceSyncProfiles() {
             document.getElementById('sync-btn').classList.add('animate-spin');
-            google.script.run.withFailureHandler(err => {
-                document.getElementById('sync-btn').classList.remove('animate-spin');
-                alert("Error de Sincronización: " + err);
-            }).withSuccessHandler(data => {
+            try {
+                const data = await callGAS('discoverAndSyncEvents', [ADMIN_PASS]);
                 document.getElementById('sync-btn').classList.remove('animate-spin');
                 if(data && data.perfiles) {
                     globalPerfiles = data.perfiles;
-                    const selector = document.getElementById('event-selector');
                     const active = data.activo || "General";
-                    selector.innerHTML = Object.keys(globalPerfiles).map(id => `<option value="${id}" ${id === active ? 'selected' : ''}>${globalPerfiles[id].eventName || id}</option>`).join('');
+                    const selector = document.getElementById('event-selector');
+                    selector.innerHTML = Object.keys(globalPerfiles).map(id =>
+                        `<option value="${id}" ${id === active ? 'selected' : ''}>${globalPerfiles[id].eventName || id}</option>`).join('');
                     switchEvent();
                 }
-            }).discoverAndSyncEvents(ADMIN_PASS);
+            } catch(err) {
+                document.getElementById('sync-btn').classList.remove('animate-spin');
+                alert("Error de Sincronización: " + err);
+            }
         }
 
-        function switchEvent() {
+        async function switchEvent() {
             const id = document.getElementById('event-selector').value;
             activeEventId = id;
             document.getElementById('active-event-indicator').innerText = "Sincronizando...";
-            
-            google.script.run.withSuccessHandler(profile => {
+            try {
+                const profile = await callGAS('getEventoExtraDetails', [ADMIN_PASS, id]);
                 document.getElementById('active-event-indicator').innerText = profile.fullEventTitle || profile.eventName || id;
                 document.getElementById('input-full-title').value = profile.fullEventTitle || "";
                 document.getElementById('input-public-title').value = profile.eventName || "";
@@ -578,14 +697,20 @@
                 document.getElementById('input-title-color').value = profile.titleColor || "#FFFFFF";
                 document.getElementById('input-bg-color').value = profile.bgColor || "#0A0A0A";
                 document.getElementById('preset-font').value = profile.fontPrimary || "Inter";
+                document.getElementById('preset-font-title').value = profile.fontTitle || "Epilogue";
                 document.getElementById('watermark-enabled').checked = !!profile.isWatermarkEnabled;
                 document.getElementById('ticker-enabled').checked = !!profile.isTickerEnabled;
                 document.getElementById('ticker-text').value = profile.tickerText || "";
+                document.getElementById('usage-tier').value = profile.usageTier || "1";
                 document.getElementById('guest-count-badge').innerText = profile.guestPhotosCount || 0;
-                
-                // Previsualizaciones
-                const fixUrl = (u) => { if (!u || u === "null" || u.trim() === "undefined" || u.trim() === "") return null; return u.startsWith('http') ? u : 'https://lh3.googleusercontent.com/d/' + u; };
-                
+
+                const fixUrl = (u) => { 
+                    if (!u || u === "null" || u.trim() === "undefined" || u.trim() === "") return null; 
+                    let url = u.startsWith('http') ? u : 'https://lh3.googleusercontent.com/d/' + u;
+                    if (url.includes('drive.google.com/thumbnail')) url = url.replace('sz=w2000', 'sz=w100');
+                    return url;
+                };
+
                 const hUrl = fixUrl(profile.heroImageUrl);
                 if(hUrl) {
                     document.getElementById('adminHeroPreview').src = hUrl;
@@ -595,7 +720,7 @@
                     document.getElementById('adminHeroPreview').classList.add('hidden');
                     document.getElementById('hero-placeholder').classList.remove('hidden');
                 }
-                
+
                 const wmUrl = fixUrl(profile.watermarkUrl);
                 if(wmUrl) {
                     document.getElementById('adminWatermarkPreview').src = wmUrl;
@@ -610,33 +735,58 @@
                 if(bgUrl) {
                     document.getElementById('adminBgPreview').src = bgUrl;
                     document.getElementById('adminBgPreview').classList.remove('hidden');
-                    if (document.getElementById('bg-placeholder')) document.getElementById('bg-placeholder').classList.add('hidden');
+                    if(document.getElementById('bg-placeholder')) document.getElementById('bg-placeholder').classList.add('hidden');
                 } else {
                     document.getElementById('adminBgPreview').classList.add('hidden');
-                    if (document.getElementById('bg-placeholder')) document.getElementById('bg-placeholder').classList.remove('hidden');
+                    if(document.getElementById('bg-placeholder')) document.getElementById('bg-placeholder').classList.remove('hidden');
                 }
 
                 const tkUrl = fixUrl(profile.tickerUrl);
                 if(tkUrl) {
                     document.getElementById('adminTickerPreview').src = tkUrl;
                     document.getElementById('adminTickerPreview').classList.remove('hidden');
-                    if (document.getElementById('ticker-placeholder')) document.getElementById('ticker-placeholder').classList.add('hidden');
+                    if(document.getElementById('ticker-placeholder')) document.getElementById('ticker-placeholder').classList.add('hidden');
                 } else {
                     document.getElementById('adminTickerPreview').classList.add('hidden');
-                    if (document.getElementById('ticker-placeholder')) document.getElementById('ticker-placeholder').classList.remove('hidden');
+                    if(document.getElementById('ticker-placeholder')) document.getElementById('ticker-placeholder').classList.remove('hidden');
                 }
 
                 updateTimerUI(profile);
                 updateMockup();
-            }).getEventoExtraDetails(ADMIN_PASS, id);
+
+                // --- SEGUNDO PASO: Sincronización Forzada de Carpeta (G_ASSET__BRANDING) ---
+                callGAS('syncEventBranding', [id]).then(res => {
+                    if (res && res.data) {
+                        const fresh = res.data;
+                        const updateImg = (key, imgId, placeholderId) => {
+                            const url = fixUrl(fresh[key]);
+                            if (url) {
+                                document.getElementById(imgId).src = url;
+                                document.getElementById(imgId).classList.remove('hidden');
+                                if(document.getElementById(placeholderId)) document.getElementById(placeholderId).classList.add('hidden');
+                            }
+                        };
+                        updateImg('heroImageUrl', 'adminHeroPreview', 'hero-placeholder');
+                        updateImg('bgImageUrl', 'adminBgPreview', 'bg-placeholder');
+                        updateImg('watermarkUrl', 'adminWatermarkPreview', 'wm-placeholder');
+                        updateImg('tickerUrl', 'adminTickerPreview', 'ticker-placeholder');
+                    }
+                });
+            } catch(err) {
+                document.getElementById('active-event-indicator').innerText = "Error al cargar";
+                console.error("switchEvent error:", err);
+            }
         }
 
-        function handleTimerAction(action) {
+        async function handleTimerAction(action) {
             const h = document.getElementById('input-h-manual').value || 0;
             const m = document.getElementById('input-m-manual').value || 0;
-            google.script.run.withSuccessHandler(res => {
-                if(res.success) updateTimerUI(res.profile);
-            }).controlTimer(ADMIN_PASS, activeEventId, action, (parseInt(h)*60 + parseInt(m)));
+            try {
+                const res = await callGAS('controlTimer', [ADMIN_PASS, activeEventId, action, (parseInt(h)*60 + parseInt(m))]);
+                if(res && res.success) updateTimerUI(res.profile);
+            } catch(err) {
+                alert("Error en timer: " + err);
+            }
         }
 
         function setTimerPreset(h, m) {
@@ -730,13 +880,14 @@
                 titleColor: document.getElementById('input-title-color').value,
                 bgColor: document.getElementById('input-bg-color').value,
                 fontPrimary: document.getElementById('preset-font').value,
+                fontTitle: document.getElementById('preset-font-title').value,
                 isWatermarkEnabled: document.getElementById('watermark-enabled').checked,
                 isTickerEnabled: document.getElementById('ticker-enabled').checked,
-                tickerText: document.getElementById('ticker-text').value
+                tickerText: document.getElementById('ticker-text').value,
+                usageTier: document.getElementById('usage-tier').value
             };
             
             try {
-                // Usar fetch POST directo — evita bloqueo Edge Tracking Prevention con JSONP
                 await fetch(GAS_API_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -746,26 +897,57 @@
                         args: [ADMIN_PASS, activeEventId, data, true]
                     })
                 });
-                btn.innerText = "PUBLICAR CAMBIOS"; btn.disabled = false;
-                alert("\u2705 Cambios publicados correctamente.");
-                switchEvent();
-            } catch(err) {
-                btn.innerText = "PUBLICAR CAMBIOS"; btn.disabled = false;
-                alert("Error al guardar: " + err);
+                btn.innerText = "ACCION COMPLETADA";
+                setTimeout(() => { btn.innerText = "PUBLICAR CAMBIOS"; btn.disabled = false; }, 3000);
+            } catch (err) {
+                alert("Error al publicar: " + err.message);
+                btn.innerText = "ERROR"; btn.disabled = false;
             }
+        }
+
+        function openQR() {
+            const eventId = activeEventId || 'General';
+            const baseUrl = window.location.href.split('admin/panel.html')[0] + 'client/index.html';
+            const fullUrl = baseUrl + '?e=' + eventId;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(fullUrl)}`;
+            
+            const modal = document.getElementById('qr-admin-modal');
+            document.getElementById('qr-admin-img').src = qrUrl;
+            document.getElementById('qr-admin-link').innerText = fullUrl;
+            document.getElementById('qr-admin-link').href = fullUrl;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function downloadQR() {
+            const img = document.getElementById('qr-admin-img');
+            const eventId = activeEventId || 'General';
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = `QR_ShareMoments_${eventId}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function nuevoEvento() {
             const n = prompt("ID del Nuevo Evento (Ej: BodaJuanYMaria):");
-            if(n) google.script.run.withSuccessHandler(() => location.reload()).crearNuevoEvento(ADMIN_PASS, n);
+            if(n) callGAS('crearNuevoEvento', [ADMIN_PASS, n]).then(() => location.reload());
         }
 
-        function openQR() {
-            const url = window.location.origin + window.location.pathname.replace("admin/panel.html", "index.html") + "?e=" + activeEventId;
-            window.open(url, "_blank");
+        function exitAdmin() {
+            // Persistir la identidad del evento activo antes de salir
+            // para que el splash screen y selector arranquen con el contexto correcto
+            const fullTitle = document.getElementById('active-event-indicator').innerText || activeEventId;
+            const accentColor = document.getElementById('input-accent-color').value;
+            const bgColor = document.getElementById('input-bg-color').value;
+            localStorage.setItem('lastEventId', activeEventId);
+            localStorage.setItem('fullEventTitle', fullTitle);
+            localStorage.setItem('eventName', activeEventId);
+            if(accentColor) localStorage.setItem('accentColor', accentColor);
+            if(bgColor) localStorage.setItem('bgColor', bgColor);
+            location.href = "../index.html?e=" + encodeURIComponent(activeEventId);
         }
-
-        function exitAdmin() { location.href = "../index.html?e=" + activeEventId; }
 
         window.onload = loadDashboard;
     </script>
