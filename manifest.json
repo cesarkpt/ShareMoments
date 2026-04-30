@@ -1,0 +1,21 @@
+{
+  "name": "ShareMoments Luxury Feed",
+  "short_name": "ShareMoments",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuDbQJnoaWFKj_EME5U-3tb6O8h6q5HaKm0FKGIvqRqywuDehouARR-YzwLDVhXUHHaRocf9XGRbkjTo_exYZ3SrrXrRureFpXpFRhcSgp1kkDhFMpXdOPxmxtw_7NdOhkDpHgoADt3-w-ZsOkbsqbvgvX3kH82i3hCvyobpCTWIdXiDRNXugrE_5Pjf6T4USOm68lPUaLhr3DGYUR5xGdI0EeWldYOe5uAibVvlFqu5ivVpg3Wu2lGHUWKYxCuv-6QouNWJH-YhD5s",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://lh3.googleusercontent.com/aida-public/AB6AXuDbQJnoaWFKj_EME5U-3tb6O8h6q5HaKm0FKGIvqRqywuDehouARR-YzwLDVhXUHHaRocf9XGRbkjTo_exYZ3SrrXrRureFpXpFRhcSgp1kkDhFMpXdOPxmxtw_7NdOhkDpHgoADt3-w-ZsOkbsqbvgvX3kH82i3hCvyobpCTWIdXiDRNXugrE_5Pjf6T4USOm68lPUaLhr3DGYUR5xGdI0EeWldYOe5uAibVvlFqu5ivVpg3Wu2lGHUWKYxCuv-6QouNWJH-YhD5s",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

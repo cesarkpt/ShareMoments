@@ -1,0 +1,208 @@
+<!-- Splash Screen Master - Edición Oro Dinámica - 3PayaresTV Official -->
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+    <title>ShareMoments - Bienvenidos</title>
+    <meta name="theme-color" content="#000000">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script id="tailwind-config">
+          tailwind.config = {
+            theme: {
+              extend: {
+                colors: { "primary": "#000101", "gilt": "#D4AF37" },
+                fontFamily: { "headline": ["Epilogue"], "body": ["Inter"] },
+              },
+            },
+          }
+    </script>
+    <style>
+        html { background: #000000; }
+        html, body { color: white; overflow: hidden; height: 100dvh; width: 100vw; -webkit-overflow-scrolling: touch; }
+        body { background: transparent; }
+        
+        #hero-section-bg {
+            position: fixed; inset: 0; z-index: -10;
+            background-color: transparent; background-size: cover; background-position: center;
+            opacity: 1; filter: brightness(0.45);
+        }
+        .vignette-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.95) 100%);
+            z-index: -5;
+        }
+
+        .standard-title {
+            color: #FFFFFF; font-weight: 950; text-transform: uppercase; font-style: italic;
+            filter: drop-shadow(0 4px 15px rgba(0,0,0,1));
+        }
+
+        .bar-progress-container {
+            width: 200px; height: 1px; background: rgba(255,255,255,0.05);
+            overflow: hidden; border-radius: 4px;
+        }
+        #bar-progress-inner {
+            width: 0%; height: 100%; background: var(--accent, #D4AF37);
+            transition: width 4.5s linear;
+            box-shadow: 0 0 15px var(--accent-glow, rgba(212,175,55,0.4));
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(20px); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes fadeUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 1s ease-out forwards; }
+    </style>
+</head>
+<body class="flex flex-col items-center text-white antialiased">
+    <div id="hero-section-bg"></div>
+    <div class="vignette-overlay"></div>
+
+    <script>
+        // MOTOR DE IDENTIDAD INSTANTÁNEO
+        (function() {
+            const up = new URLSearchParams(window.location.search);
+            const idFromUrl = up.get('e') || up.get('id');
+            const idFromCache = localStorage.getItem('lastEventId');
+            
+            let currentId = idFromUrl || idFromCache || "General";
+            if (currentId.toLowerCase() === 'event' || currentId === "") currentId = "General";
+            
+            const cachedFullTitle = localStorage.getItem('fullEventTitle');
+            const cachedTitleColor = localStorage.getItem('titleColor');
+            const cachedAccent = localStorage.getItem('accentColor') || "#D4AF37";
+            const cachedFont = localStorage.getItem('fontPrimary') || "Inter";
+            const cachedFontTitle = localStorage.getItem('fontTitle') || "Epilogue";
+            
+            if (cachedFont !== "Inter") {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${cachedFont.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
+                document.head.appendChild(link);
+            }
+            if (cachedFontTitle && cachedFontTitle !== "Inter" && cachedFontTitle !== cachedFont) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${cachedFontTitle.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
+                document.head.appendChild(link);
+            }
+
+            let displayTitle = cachedFullTitle || currentId.replace(/_/g, " ");
+            window.INITIAL_EVENT_NAME = displayTitle;
+            window.INITIAL_TITLE_COLOR = cachedTitleColor || "#FFFFFF";
+            window.URL_EVENT_ID = currentId;
+
+            let cUrl = localStorage.getItem('bgImageUrl') || localStorage.getItem('heroImageUrl');
+            if (!cUrl || cUrl.trim() === "null" || cUrl.trim() === "undefined") cUrl = "";
+            const heroUrl = cUrl.startsWith('http') ? cUrl : (cUrl ? `https://lh3.googleusercontent.com/d/${cUrl}` : "");
+            
+            let wmUrl = localStorage.getItem('watermarkUrl');
+            if (wmUrl && wmUrl !== "null" && wmUrl.trim() !== "undefined") {
+                window.INITIAL_LOGO_URL = wmUrl.startsWith('http') ? wmUrl : `https://lh3.googleusercontent.com/d/${wmUrl}`;
+            } else {
+                window.INITIAL_LOGO_URL = "https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_";
+            }
+            
+            document.write(`<style>
+                :root { --accent: ${cachedAccent}; --accent-glow: ${cachedAccent}66; }
+                body { font-family: "${cachedFont}", "Inter", sans-serif; }
+                #hero-section-bg { ${heroUrl ? `background-image: url('${heroUrl}');` : 'background-color: #0A0A0A;'} }
+                #display-event-title { color: ${window.INITIAL_TITLE_COLOR} !important; font-family: "${cachedFontTitle}", sans-serif !important; }
+                .bg-gilt { background-color: ${cachedAccent} !important; }
+                .text-gilt { color: ${cachedAccent} !important; }
+            </style>`);
+        })();
+    </script>
+
+    <main class="relative h-screen w-full flex flex-col items-center justify-between py-24 pb-20 z-10">
+        <header class="animate-float">
+            <script>
+                document.write(`<img id="app-logo" src="${window.INITIAL_LOGO_URL}" class="h-48 md:h-64 object-contain drop-shadow-2xl" alt="ShareMoments Logo" />`);
+            </script>
+        </header>
+
+        <div class="flex flex-col items-center space-y-4 text-center px-10">
+            <h1 id="display-event-title" class="standard-title font-headline text-5xl md:text-7xl tracking-tight leading-none italic uppercase">
+                <script>document.write(window.INITIAL_EVENT_NAME);</script>
+            </h1>
+            <div class="h-[1px] w-16 bg-white/10 mt-4 opacity-50"></div>
+        </div>
+
+        <div class="flex flex-col items-center space-y-6 animate-fade-up">
+            <div class="flex items-center gap-3 py-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gilt opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-gilt"></span>
+                </span>
+                <p id="status-text" class="text-[8px] uppercase font-black tracking-[0.4em] text-white/40">Sincronizando experiencia</p>
+            </div>
+            <div class="bar-progress-container shadow-2xl">
+                <div id="bar-progress-inner"></div>
+            </div>
+            <p class="font-body text-[9px] tracking-[0.5em] uppercase text-gilt font-black pt-2 animate-pulse">
+                Real-time Event Photo Sharing
+            </p>
+        </div>
+    </main>
+
+    <script>
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec"; 
+        
+        window.google = { script: { run: (function(){
+            const buildProxy = (h = {}) => new Proxy({}, {
+                get: (t, p) => {
+                    if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                    return function(...args) {
+                        const id = "jp_" + Date.now() + Math.round(Math.random()*1000);
+                        window[id] = (r) => { delete window[id]; if(h.success) h.success(r); };
+                        const s = document.createElement("script");
+                        s.src = window.GAS_API_URL + "?callback="+id+"&method="+p+"&args="+encodeURIComponent(JSON.stringify(args));
+                        document.body.appendChild(s);
+                    };
+                }
+            });
+            return buildProxy();
+        })() } };
+
+        function runMainFlow() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data || data.error) return;
+                const fullTitle = data.fullEventTitle || data.eventName || "ShareMoments";
+                const titleEl = document.getElementById('display-event-title');
+                if (titleEl) {
+                    titleEl.innerText = fullTitle;
+                    if (data.titleColor) titleEl.style.color = data.titleColor;
+                    if (data.fontTitle) titleEl.style.fontFamily = `"${data.fontTitle}", sans-serif`;
+                }
+                localStorage.setItem('fullEventTitle', fullTitle);
+                localStorage.setItem('fontPrimary', data.fontPrimary || "Inter");
+                localStorage.setItem('fontTitle', data.fontTitle || "Epilogue");
+                if(data.titleColor) localStorage.setItem('titleColor', data.titleColor);
+                if(data.watermarkUrl) localStorage.setItem('watermarkUrl', data.watermarkUrl);
+                if(data.accentColor) localStorage.setItem('accentColor', data.accentColor);
+                if(data.bgColor) localStorage.setItem('bgColor', data.bgColor);
+                if(data.fontPrimary) localStorage.setItem('fontPrimary', data.fontPrimary);
+                if (data.eventId) localStorage.setItem('lastEventId', data.eventId);
+                if (data.heroImageUrl) localStorage.setItem('heroImageUrl', data.heroImageUrl);
+                if (data.bgImageUrl) localStorage.setItem('bgImageUrl', data.bgImageUrl);
+            }).getInitialData(window.URL_EVENT_ID);
+
+            setTimeout(() => {
+                const bar = document.getElementById('bar-progress-inner');
+                if(bar) bar.style.width = '100%';
+            }, 100);
+
+            const gName = localStorage.getItem('guestName');
+            const isRegistered = gName && localStorage.getItem('termsAccepted');
+            const targetPage = isRegistered ? 'client/selector.html' : 'client/welcome.html';
+            setTimeout(() => { window.location.replace(targetPage + window.location.search); }, 4600);
+        }
+        window.onload = runMainFlow;
+    </script>
+</body>
+</html>
