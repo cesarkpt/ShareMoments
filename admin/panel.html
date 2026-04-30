@@ -436,31 +436,21 @@
 
         function callGAS(method, args) {
             return new Promise((resolve, reject) => {
-                const cbName = 'gasCb_' + Date.now() + Math.floor(Math.random() * 1000);
+                const reqId = 'req_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
                 const timeout = setTimeout(() => {
-                    delete window[cbName];
-                    reject(new Error('Timeout: El servidor tardó demasiado (15s)'));
+                    pendingRequests.delete(reqId);
+                    reject(new Error('Timeout: El servidor no respondió. Verifica tu conexión y permisos.'));
                 }, 15000);
 
-                window[cbName] = (res) => {
-                    clearTimeout(timeout);
-                    delete window[cbName];
-                    if (res && res.error) reject(new Error(res.error));
-                    else resolve(res);
-                };
+                pendingRequests.set(reqId, { 
+                    resolve: (res) => { clearTimeout(timeout); resolve(res); },
+                    reject: (err) => { clearTimeout(timeout); reject(err); }
+                });
 
-                const scriptUrl = `${GAS_API_URL}?callback=${cbName}&method=${method}&args=${encodeURIComponent(JSON.stringify(args || []))}&v=${Date.now()}`;
-                const s = document.createElement('script');
-                s.src = scriptUrl;
-                s.onerror = () => {
-                    clearTimeout(timeout);
-                    delete window[cbName];
-                    console.error("Fallo de carga de script (JSONP):", scriptUrl);
-                    reject(new Error(`Error de conexión con el servidor.\nVerifica tu conexión o si la URL de GAS en el panel es correcta.`));
-                };
-                document.body.appendChild(s);
-                // Limpieza del DOM
-                setTimeout(() => { if(s.parentNode) s.parentNode.removeChild(s); }, 16000);
+                // Motor de Comunicación Bridge (Iframe)
+                const bridge = document.getElementById('gas-bridge');
+                const bridgeUrl = `${GAS_API_URL}?view=bridge&method=${method}&reqId=${reqId}&args=${encodeURIComponent(JSON.stringify(args || []))}`;
+                bridge.src = bridgeUrl;
             });
         }
 

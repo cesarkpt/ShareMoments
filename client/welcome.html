@@ -253,7 +253,7 @@
         function toggleContactModal(show) { document.getElementById('contact-modal').classList.toggle('hidden', !show); document.getElementById('contact-modal').classList.toggle('flex', show); }
         function toggleModal(show) { document.getElementById('terms-modal').classList.toggle('hidden', !show); document.getElementById('terms-modal').classList.toggle('flex', show); }
         function downloadVCard() { window.open("https://drive.google.com/uc?export=download&id=1O7a_W_8wZ7zM5M6Z7Z8zM5M6Z7zM5M6", "_blank"); }
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxf3Wrl35dPCl0078NsPz7SXZLnh9oLCNRwNWHuJ6_c3dfCSUbRq969adM4SCEg1lDriA/exec";
         const urlParams = new URLSearchParams(window.location.search);
         let eventId = urlParams.get('e') || urlParams.get('id') || localStorage.getItem('lastEventId') || 'General';
         if (eventId.toLowerCase() === 'event' || eventId === "") eventId = "General";
@@ -261,28 +261,37 @@
         localStorage.setItem('lastEventId', window.URL_EVENT_ID);
         
         const pendingRequests = new Map();
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.id && pendingRequests.has(event.data.id)) {
+                const { resolve, reject } = pendingRequests.get(event.data.id);
+                pendingRequests.delete(event.data.id);
+                if (event.data.error) reject(event.data.error);
+                else resolve(event.data.result);
+            }
+        });
+
         function callGAS(method, args) {
             return new Promise((resolve, reject) => {
-                const cbName = 'gasCb_' + Date.now() + Math.floor(Math.random() * 1000);
+                const reqId = 'req_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
                 const timeout = setTimeout(() => {
-                    delete window[cbName];
-                    reject(new Error('Timeout: El servidor tardó demasiado (15s)'));
+                    pendingRequests.delete(reqId);
+                    reject(new Error('Timeout: El servidor no respondió.'));
                 }, 15000);
 
-                window[cbName] = (res) => {
-                    clearTimeout(timeout);
-                    delete window[cbName];
-                    resolve(res);
-                };
+                pendingRequests.set(reqId, { 
+                    resolve: (res) => { clearTimeout(timeout); resolve(res); },
+                    reject: (err) => { clearTimeout(timeout); reject(err); }
+                });
 
-                const s = document.createElement('script');
-                s.src = `${GAS_API_URL}?callback=${cbName}&method=${method}&args=${encodeURIComponent(JSON.stringify(args))}`;
-                s.onerror = () => {
-                    clearTimeout(timeout);
-                    delete window[cbName];
-                    reject(new Error('Error de red al conectar con el servidor'));
-                };
-                document.body.appendChild(s);
+                let bridge = document.getElementById('gas-bridge');
+                if(!bridge) {
+                    bridge = document.createElement('iframe');
+                    bridge.id = 'gas-bridge';
+                    bridge.style.display = 'none';
+                    document.body.appendChild(bridge);
+                }
+                const bridgeUrl = `${GAS_API_URL}?view=bridge&method=${method}&reqId=${reqId}&args=${encodeURIComponent(JSON.stringify(args || []))}`;
+                bridge.src = bridgeUrl;
             });
         }
 
@@ -532,18 +541,11 @@
         };
 
         window.toggleAdminGate = (s) => {
-            const el = document.getElementById('admin-gate-modal');
-            if(s) { el.classList.remove('hidden'); el.classList.add('flex'); }
-            else { el.classList.add('hidden'); el.classList.remove('flex'); }
+            if(s) window.verifyAdminAccess();
         };
 
         window.verifyAdminAccess = () => {
-            const pass = document.getElementById('admin-pass-input').value;
-            if (pass === "3payares") { // Pass temporal — debería venir del servidor
-                 location.href = 'admin/panel.html?id=' + window.URL_EVENT_ID;
-            } else {
-                 alert("Acceso denegado");
-            }
+             location.href = '../admin/panel.html?id=' + window.URL_EVENT_ID;
         };
 
         window.sendSupportWhatsApp = () => {
