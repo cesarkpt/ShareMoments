@@ -253,7 +253,7 @@
         function toggleContactModal(show) { document.getElementById('contact-modal').classList.toggle('hidden', !show); document.getElementById('contact-modal').classList.toggle('flex', show); }
         function toggleModal(show) { document.getElementById('terms-modal').classList.toggle('hidden', !show); document.getElementById('terms-modal').classList.toggle('flex', show); }
         function downloadVCard() { window.open("https://drive.google.com/uc?export=download&id=1O7a_W_8wZ7zM5M6Z7Z8zM5M6Z7zM5M6", "_blank"); }
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxf3Wrl35dPCl0078NsPz7SXZLnh9oLCNRwNWHuJ6_c3dfCSUbRq969adM4SCEg1lDriA/exec";
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyW0URXuzPHzkIObvjVXMtTREO0fHEt3ZWvtjqFG8RHa61WgvH9b-CFHReWytqf5jwE4A/exec";
         const urlParams = new URLSearchParams(window.location.search);
         let eventId = urlParams.get('e') || urlParams.get('id') || localStorage.getItem('lastEventId') || 'General';
         if (eventId.toLowerCase() === 'event' || eventId === "") eventId = "General";

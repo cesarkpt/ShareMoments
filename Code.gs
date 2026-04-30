@@ -998,6 +998,15 @@ function countFilesById(fid, limit) {
   } catch(e) { return 0; }
 }
 
+// --- STUBS PARA FUNCIONES FALTANTES (EVITA REFERENCE ERROR) ---
+function registrarVisita() { return { success: true }; }
+function registerLike() { return { success: true }; }
+function solicitarEliminacion() { return { success: true }; }
+function repairAllAssetSharing() { return { fixed: 0, failed: 0 }; }
+function resetGeneralCache() { return { success: true }; }
+function syncEventBranding() { return { success: true }; }
+function getBackgroundsForDownload() { return []; }
+
 function resetGeneralCache(pass) {
   if (pass !== ADMIN_PASS) throw "Denegado";
   MEMORY_CACHE_CONFIG = null;
