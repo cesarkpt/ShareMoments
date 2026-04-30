@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Libro de Firmas | ShareMoments</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;900&family=Great+Vibes&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { 
+            background: #050505; 
+            color: white; 
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100dvh;
+        }
+        .sky-bg {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top right, #1a1a2e 0%, #050505 100%);
+            z-index: -1;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes wish-fly {
+            0% { transform: translateY(0) scale(1) rotate(0); opacity: 1; filter: blur(0); }
+            100% { transform: translateY(-100vh) scale(0.2) rotate(10deg); opacity: 0; filter: blur(10px); }
+        }
+        .flying {
+            animation: wish-fly 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-6">
+    <div class="sky-bg"></div>
+    <div id="stars-container"></div>
+
+    <header class="fixed top-10 text-center space-y-2 opacity-60">
+        <h1 class="text-[10px] font-black uppercase tracking-[0.5em] text-gilt">Libro de Firmas</h1>
+        <p id="event-name" class="font-headline text-xs font-bold uppercase tracking-widest text-white/40">Cargando...</p>
+    </header>
+
+    <main id="wish-container" class="w-full max-w-sm space-y-8 relative z-10">
+        <div class="glass-card rounded-[2.5rem] p-10 space-y-8 animate-float">
+            <div class="space-y-4">
+                <div class="flex justify-between items-end">
+                    <label class="text-[9px] font-black uppercase tracking-widest text-white/30">Tu deseo / Mensaje</label>
+                    <span id="char-count" class="text-[8px] font-bold text-white/10 uppercase">0 / 200</span>
+                </div>
+                <textarea id="input-message" maxlength="200" class="w-full bg-transparent border-none text-xl md:text-2xl font-headline font-medium text-white placeholder-white/10 outline-none resize-none h-40 custom-scrollbar" placeholder="Escribe algo mágico..."></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-white/5 space-y-2">
+                <label class="text-[9px] font-black uppercase tracking-widest text-white/30">Firmado por</label>
+                <input id="input-author" type="text" readonly class="w-full bg-transparent border-none text-sm font-bold text-gilt outline-none" value="Invitado">
+            </div>
+        </div>
+
+        <button onclick="sendWish()" id="btn-send" class="w-full py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] shadow-2xl active:scale-95 transition-all hover:bg-gilt">
+            Enviar mi Deseo
+        </button>
+    </main>
+
+    <footer class="fixed bottom-10">
+        <button onclick="window.history.back()" class="text-[8px] font-black uppercase tracking-[0.5em] text-white/20 hover:text-white transition-colors">Volver a la Galería</button>
+    </footer>
+
+    <script>
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        window.URL_EVENT_ID = urlParams.get('e') || 'General';
+
+        if (typeof google === 'undefined' || !google.script) {
+            window.google = { script: { run: (function(){
+                const buildProxy = (h = {}) => new Proxy({}, {
+                    get: (t, p) => {
+                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                        return async function(...args) {
+                            const id = "jp_" + Date.now() + Math.floor(Math.random()*1000);
+                            window[id] = (r) => { delete window[id]; if(h.success) h.success(r); };
+                            const s = document.createElement("script");
+                            s.src = window.GAS_API_URL + "?callback="+id+"&method="+p+"&args="+encodeURIComponent(JSON.stringify(args));
+                            document.body.appendChild(s);
+                        };
+                    }
+                });
+                return buildProxy();
+            })() } };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generar estrellas
+            const container = document.getElementById('stars-container');
+            for(let i=0; i<80; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 2 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                container.appendChild(star);
+            }
+
+            const author = localStorage.getItem('guestName') || "Invitado";
+            document.getElementById('input-author').value = author.toUpperCase();
+
+            google.script.run.withSuccessHandler(data => {
+                if(data.eventName) document.getElementById('event-name').innerText = data.eventName;
+                if(data.accentColor) document.documentElement.style.setProperty('--gilt', data.accentColor);
+            }).getInitialData(window.URL_EVENT_ID);
+        });
+
+        const textarea = document.getElementById('input-message');
+        textarea.addEventListener('input', () => {
+            document.getElementById('char-count').innerText = `${textarea.value.length} / 200`;
+        });
+
+        async function sendWish() {
+            const message = textarea.value.trim();
+            const author = document.getElementById('input-author').value;
+            const btn = document.getElementById('btn-send');
+
+            if(!message) return;
+            
+            btn.innerText = "ENVIANDO...";
+            btn.disabled = true;
+
+            google.script.run.withSuccessHandler(res => {
+                if(res.success) {
+                    // Animación de vuelo
+                    document.getElementById('wish-container').classList.add('flying');
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 1 }, colors: ['#D4AF37', '#FFFFFF'] });
+                    
+                    setTimeout(() => {
+                        window.history.back();
+                    }, 1500);
+                } else {
+                    alert("Error al enviar el deseo.");
+                    btn.innerText = "Enviar mi Deseo";
+                    btn.disabled = false;
+                }
+            }).saveSignature(author, message, window.URL_EVENT_ID);
+        }
+    </script>
+</body>
+</html>

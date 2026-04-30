@@ -1,0 +1,557 @@
+<!-- Bienvenida con Foto Hero estilo Polaroid - 3PayaresTV Official -->
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+    <title>ShareMoments - Bienvenida</title>
+    <meta name="theme-color" content="#000000">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#000101", "gilt": "var(--gilt, #D4AF37)" },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        :root { --gilt: #D4AF37; }
+        @keyframes pageEnter { from { opacity: 0; transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
+        .animate-page { animation: pageEnter 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .avatar-polaroid {
+            background: #FFFFFF !important; padding: 8px 8px 24px 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); transform: rotate(-3deg); z-index: 10;
+        }
+        .premium-cta {
+            background-color: var(--gilt) !important;
+            background-image: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.4) 55%, rgba(255,255,255,0) 70%) !important;
+            background-size: 200% 100% !important;
+            color: black !important;
+            animation: shimmer 3s infinite linear !important;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            position: relative; overflow: hidden;
+            border: none !important;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .premium-cta:hover { filter: brightness(1.1); transform: scale(1.02); }
+        .premium-cta:active { transform: scale(0.98); }
+        html { background: #000000; }
+        html, body { color: white; overflow: hidden; height: 100dvh; width: 100vw; -webkit-overflow-scrolling: touch; }
+        body { background: transparent; }
+        #hero-section-bg {
+            position: fixed; inset: 0; z-index: -10;
+            background-color: transparent; background-size: cover; background-position: center;
+            opacity: 1; filter: brightness(0.45); 
+        }
+        .vignette-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.95) 100%);
+            z-index: -5;
+        }
+    </style>
+</head>
+<body class="font-body h-screen flex flex-col items-center text-white overflow-hidden">
+    <div class="animate-page fixed inset-0 flex flex-col items-center">
+        <div id="hero-section-bg"></div>
+        <div class="vignette-overlay"></div>
+    </div>
+
+    <!-- Contenido en Wrapper Animado -->
+    <div class="animate-page flex flex-col items-center w-full h-full">
+    <div class="vignette-overlay"></div>
+
+    <!-- Logo Discreto Superior -->
+    <img id="header-logo" src="https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_" class="fixed top-8 left-0 right-0 mx-auto h-24 object-contain opacity-95 pointer-events-none z-[1000]" alt="ShareMoments">
+
+    <main class="flex-1 w-full max-w-sm flex flex-col items-center justify-center text-center space-y-6 relative z-10 py-4 px-6 overflow-y-auto custom-scrollbar">
+        <header class="space-y-4 animate-page">
+            <!-- Selector de Selfie Estilo Polaroid -->
+            <div onclick="document.getElementById('selfie-input').click()" class="avatar-polaroid w-44 h-44 mx-auto mb-6 overflow-hidden flex items-center justify-center border border-white/10 cursor-pointer group hover:scale-105 transition-all relative">
+                <img id="selfie-preview" src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-opacity" />
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/10 group-hover:bg-transparent">
+                    <p class="text-[8px] font-black uppercase tracking-[0.3em] mt-1 text-white/40 group-hover:text-white transition-colors">Toca para Selfie</p>
+                </div>
+            </div>
+            <input type="file" id="selfie-input" accept="image/*" capture="user" class="hidden" onchange="previewSelfie(this)">
+
+            <h1 id="event-title-display" class="font-headline font-black text-2xl tracking-tighter text-white uppercase">...</h1>
+            <div class="space-y-2 max-w-[300px] mx-auto">
+                <p class="text-white text-sm font-bold tracking-tight">¡Bienvenido a la Experiencia! 👋</p>
+                <p class="text-white/40 text-[9px] font-medium leading-relaxed uppercase tracking-widest">Regístrate para comenzar</p>
+            </div>
+        </header>
+
+        <div class="w-full space-y-4">
+            <div class="space-y-3 w-full animate-page" style="animation-delay: 0.3s">
+                <input id="guest-name" type="text" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center text-white placeholder-white/30 outline-none transition-all focus:border-gilt text-sm font-black uppercase tracking-widest" placeholder="TU NOMBRE (OPCIONAL)">
+                <textarea id="guest-message" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center text-white placeholder-white/30 outline-none transition-all focus:border-gilt text-[10px] font-medium resize-none h-20 uppercase tracking-widest" placeholder="MENSAJE PARA EL LIBRO"></textarea>
+            </div>
+            
+            <button onclick="handleEntry()" id="btn-continue" class="w-full py-5 rounded-2xl shadow-2xl premium-cta font-black uppercase tracking-[0.3em] text-[10px]">
+                Sincronizar y Entrar
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal de Carga -->
+    <div id="loading-modal" class="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl hidden flex-col items-center justify-center space-y-8">
+        <div class="relative w-24 h-24">
+            <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-gilt rounded-full animate-spin border-t-transparent"></div>
+        </div>
+        <div class="text-center space-y-2">
+            <h2 class="text-xs font-black uppercase tracking-[0.4em] text-white">Firmando Libro...</h2>
+            <p class="text-[8px] text-white/30 uppercase tracking-[0.2em]">Preparando tu experiencia personalizada</p>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN GATE -->
+    <div id="admin-gate-modal" class="fixed inset-0 z-[1100] bg-black/90 backdrop-blur-xl hidden p-6 transition-all duration-300">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-white/20 w-full max-w-[280px] rounded-[3rem] p-10 space-y-8 shadow-2xl flex flex-col items-center overflow-hidden" style="background: var(--bg-color, #0A0A0A)">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+            <div class="space-y-2 text-center relative">
+                <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2">
+                    <span class="material-icons text-white/80">lock_open</span>
+                </div>
+                <h3 class="text-white font-black text-xs uppercase tracking-[0.4em]">Acceso Admin</h3>
+                <p class="text-white/40 text-[8px] font-bold uppercase tracking-widest italic pt-1 text-center">Solo Organizadores</p>
+            </div>
+            <input id="admin-pass-input" type="password" placeholder="Contraseña..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-center text-white outline-none focus:border-gilt/50 transition-all"/>
+            <div class="grid grid-cols-1 gap-3 w-full">
+                <button onclick="verifyAdminAccess()" class="w-full py-4 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-[0.4em] active:scale-95 transition-all shadow-xl">Entrar</button>
+                <button onclick="toggleAdminGate(false)" class="w-full text-[8px] uppercase tracking-widest font-black text-white/20 hover:text-white transition-colors">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Soporte -->
+    <div id="support-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md hidden p-6 transition-all duration-300">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-white/20 w-full max-w-sm rounded-[3rem] p-10 space-y-8 shadow-2xl overflow-hidden text-center" style="background: var(--bg-color, #0A0A0A)">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+            <div class="space-y-4">
+                <div class="w-16 h-16 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] mx-auto">
+                    <span class="material-icons text-4xl">contact_support</span>
+                </div>
+                <h3 class="text-white font-black text-xs uppercase tracking-[0.4em]">Soporte Técnico</h3>
+            </div>
+            <textarea id="support-query" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-white text-xs outline-none focus:border-[#25D366]/40 transition-all resize-none" rows="3" placeholder="Escribe tu duda..."></textarea>
+            <div class="space-y-3">
+                <button onclick="sendSupportWhatsApp()" class="w-full py-5 bg-[#25D366] text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl">WhatsApp Soporte</button>
+                <button onclick="toggleSupportModal(false)" class="w-full py-2 text-white/20 text-[9px] font-black uppercase tracking-[0.4em]">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal QR -->
+    <div id="qr-modal" class="fixed inset-0 z-[1100] bg-black/90 backdrop-blur-xl hidden p-6 transition-all duration-300">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[280px] bg-white rounded-[3rem] p-10 space-y-6 shadow-2xl flex flex-col items-center">
+            <img src="https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_" class="h-10 w-auto object-contain" alt="Logo">
+            <h3 id="qr-modal-title" class="text-black font-black text-[10px] uppercase tracking-[0.2em] text-center italic">ShareMoments</h3>
+            <div id="qr-display-container" class="w-48 h-48 bg-white p-2 rounded-2xl border border-black/5">
+                <img id="pwa-qr-img" class="w-full h-full object-contain" src=""/>
+            </div>
+            <button onclick="toggleQRModal(false)" class="w-full py-4 bg-black text-white rounded-2xl text-[9px] font-black uppercase tracking-[0.4em]">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Botones Flotantes -->
+    <div class="fixed bottom-28 right-6 z-[60] flex flex-col gap-3">
+        <button onclick="toggleQRModal(true)" class="w-12 h-12 rounded-full bg-black text-white border border-white/20 flex items-center justify-center shadow-2xl active:scale-90 transition-all">
+            <span class="text-[14px] font-black tracking-tighter">QR</span>
+        </button>
+        <button onclick="toggleSupportModal(true)" class="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-white/70 shadow-lg active:scale-90 transition-all">
+            <span class="material-icons text-xl">contact_support</span>
+        </button>
+        <button onclick="toggleAdminGate(true)" class="w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-white/70 shadow-lg active:scale-90 transition-all">
+            <span class="material-icons text-xl">settings</span>
+        </button>
+    </div>
+
+    <!-- Script Master Sincronizado -->
+    <!-- Footer Luxe -->
+    <footer class="w-full py-6 flex items-center justify-center gap-6 text-[8px] font-black uppercase tracking-[0.4em] text-white/20 transition-all z-[100] border-t border-white/5 bg-black/40 backdrop-blur-md">
+        <button type="button" onclick="toggleContactModal(true)" class="hover:text-gilt transition-colors">© 2026 3PayaresTV</button>
+        <div class="w-[1px] h-3 bg-white/10"></div>
+        <button type="button" onclick="toggleModal(true)" class="hover:text-white transition-colors">Términos y Condiciones</button>
+    </footer>
+
+    </div> <!-- Fin Wrapper Animado -->
+
+    <!-- MODAL CONTACTO -->
+    <div id="contact-modal" class="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl hidden items-center justify-center p-6 transition-all duration-300">
+        <div class="relative w-full max-w-[320px] rounded-[3rem] p-10 space-y-6 border border-white/20 shadow-2xl text-center flex flex-col items-center overflow-y-auto max-h-[90vh]" style="background: var(--bg-color, #0A0A0A)">
+            <!-- Perfil -->
+            <div class="flex flex-col items-center pt-2 space-y-5">
+                <div class="w-24 h-24 rounded-3xl overflow-hidden border-2 border-white/20 shadow-xl mx-auto"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/d/1gM-_WTSkoksYfwGCSZdyUsltx7fdWoei"></div>
+                <div class="space-y-1 text-center">
+                    <h1 class="font-headline text-2xl font-black leading-tight tracking-tight text-white">Cesar<br>Payares Torres</h1>
+                    <p class="text-[9px] uppercase font-black tracking-[0.4em] text-gilt">CEO de 3PayaresTV</p>
+                </div>
+            </div>
+            <!-- Contacto Info Extra -->
+            <div class="space-y-6 pt-4 w-full text-center">
+                <a href="tel:+573205435184" class="flex flex-col items-center gap-2 group">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">WhatsApp / Cel</span>
+                    <span class="text-[15px] font-bold text-white group-hover:text-gilt transition-all">+57 320 543 5184</span>
+                </a>
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Ubicación</span>
+                    <span class="text-[12px] font-bold text-white text-center italic leading-tight">Cra 54, #30D-30<br><span class="text-[10px] not-italic text-white/50 lowercase">Cartagena - Colombia</span></span>
+                </div>
+                <a href="https://3payarestv.cercia.co" target="_blank" class="flex flex-col items-center gap-2 group pt-2">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Website</span>
+                    <span class="text-[14px] font-bold text-white group-hover:text-gilt transition-all">3payarestv.cercia.co</span>
+                </a>
+            </div>
+            <div class="w-full space-y-3 pt-2">
+                <button onclick="downloadVCard()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-gilt transition-all active:scale-95">Guardar contacto</button>
+                <button onclick="toggleContactModal(false)" class="w-full py-2 text-white/20 text-[9px] font-black uppercase tracking-[0.4em]">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TERMINOS -->
+    <div id="terms-modal" class="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-xl hidden items-center justify-center p-6 transition-all duration-300">
+        <div class="w-full max-w-sm border border-white/10 rounded-[2.5rem] p-10 space-y-8 shadow-2xl flex flex-col max-h-[85vh] text-center relative" style="background: var(--bg-color, #0A0A0A)">
+            <div class="space-y-6 text-white text-[10px] leading-relaxed font-light overflow-y-auto pr-2 custom-scrollbar text-left italic">
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">1. Condiciones de Uso</h3>
+                    <p class="text-white/70">El código QR otorga un derecho de visualización exclusivo para los asistentes. Las imágenes son para disfrute personal y no comercial. Queda prohibida la descarga o distribución no autorizada fuera de la plataforma.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">2. Privacidad y Datos</h3>
+                    <p class="text-white/70">Las fotos se almacenan en un entorno seguro por un máximo de 30 días tras el evento y luego se eliminan de forma permanente. Como usuario, conservas el derecho de solicitar la retirada inmediata de cualquier foto de tu autoría.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">3. Autorización de Imagen</h3>
+                    <p class="text-white/70">Al participar, aceptas que tu imagen captada durante el evento pueda ser proyectada en las pantallas del recinto y visualizada en la galería compartida con el resto de los invitados, con fines recreativos y de celebración.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">4. Responsabilidad de Contenido</h3>
+                    <p class="text-white/70">Cada usuario es responsable de lo que decide compartir. La organización se reserva el derecho de retirar cualquier imagen que considere inapropiada para mantener un ambiente seguro y respetuoso para todos.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">5. Propiedad y Copias</h3>
+                    <p class="text-white/70">La tecnología pertenece a 3PayaresTV y los derechos de la galería final corresponden al Organizador. Para copias en alta resolución o impresiones físicas consulta las opciones con 3PayaresIMP.</p>
+                </section>
+            </div>
+            <button onclick="toggleModal(false)" class="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em]">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleContactModal(show) { document.getElementById('contact-modal').classList.toggle('hidden', !show); document.getElementById('contact-modal').classList.toggle('flex', show); }
+        function toggleModal(show) { document.getElementById('terms-modal').classList.toggle('hidden', !show); document.getElementById('terms-modal').classList.toggle('flex', show); }
+        function downloadVCard() { window.open("https://drive.google.com/uc?export=download&id=1O7a_W_8wZ7zM5M6Z7Z8zM5M6Z7zM5M6", "_blank"); }
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        let eventId = urlParams.get('e') || urlParams.get('id') || localStorage.getItem('lastEventId') || 'General';
+        if (eventId.toLowerCase() === 'event' || eventId === "") eventId = "General";
+        window.URL_EVENT_ID = eventId;
+        localStorage.setItem('lastEventId', window.URL_EVENT_ID);
+        
+        const pendingRequests = new Map();
+        function callGAS(method, args) {
+            return new Promise((resolve, reject) => {
+                const cbName = 'gasCb_' + Date.now() + Math.floor(Math.random() * 1000);
+                const timeout = setTimeout(() => {
+                    delete window[cbName];
+                    reject(new Error('Timeout: El servidor tardó demasiado (15s)'));
+                }, 15000);
+
+                window[cbName] = (res) => {
+                    clearTimeout(timeout);
+                    delete window[cbName];
+                    resolve(res);
+                };
+
+                const s = document.createElement('script');
+                s.src = `${GAS_API_URL}?callback=${cbName}&method=${method}&args=${encodeURIComponent(JSON.stringify(args))}`;
+                s.onerror = () => {
+                    clearTimeout(timeout);
+                    delete window[cbName];
+                    reject(new Error('Error de red al conectar con el servidor'));
+                };
+                document.body.appendChild(s);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar si el evento guardado coincide con el de la URL
+            const savedEventId = localStorage.getItem('lastEventId');
+            const isDifferentEvent = savedEventId && savedEventId !== window.URL_EVENT_ID;
+
+            const data = {
+                fullTitle: isDifferentEvent ? "ShareMoments" : (localStorage.getItem('fullEventTitle') || "ShareMoments"),
+                titleColor: isDifferentEvent ? "#FFFFFF" : (localStorage.getItem('titleColor') || "#FFFFFF"),
+                accent: isDifferentEvent ? "#D4AF37" : (localStorage.getItem('accentColor') || "#D4AF37"),
+                bg: isDifferentEvent ? "" : (localStorage.getItem('bgImageUrl') || localStorage.getItem('heroImageUrl') || '')
+            };
+
+            const titleEl = document.getElementById('event-title-display');
+            if (titleEl) {
+                titleEl.textContent = data.fullTitle;
+                titleEl.style.color = data.titleColor;
+            }
+
+            document.documentElement.style.setProperty('--gilt', data.accent);
+            document.documentElement.style.setProperty('--bg-color', data.bgColor || "#0A0A0A");
+
+            let bgUrl = data.bgImageUrl || data.heroImageUrl;
+            if (bgUrl && bgUrl !== "null" && bgUrl.trim() !== "undefined") {
+                if (!bgUrl.startsWith('http')) bgUrl = `https://lh3.googleusercontent.com/d/${bgUrl}`;
+                const bgEl = document.getElementById('hero-section-bg');
+                if (bgEl) {
+                    const tBg = new Image();
+                    tBg.onload = () => { bgEl.style.backgroundImage = `url('${bgUrl}')`; };
+                    tBg.onerror = () => { bgEl.style.backgroundColor = data.bgColor || '#0A0A0A'; };
+                    tBg.src = bgUrl;
+                }
+            } else {
+                document.getElementById('hero-section-bg').style.backgroundColor = data.bgColor || "#0A0A0A";
+                document.getElementById('hero-section-bg').style.backgroundImage = "none";
+            }
+
+            // Contraste inteligente para botones premium
+            function getContrastYIQ(hexcolor){
+                if(!hexcolor || hexcolor === 'undefined') return 'black';
+                const hex = hexcolor.replace("#", "");
+                const r = parseInt(hex.substr(0,2),16);
+                const g = parseInt(hex.substr(2,2),16);
+                const b = parseInt(hex.substr(4,2),16);
+                const yiq = ((r*299)+(g*587)+(b*114))/1000;
+                return (yiq >= 128) ? 'black' : 'white';
+            }
+            const contrast = getContrastYIQ(data.accent);
+            document.querySelectorAll('.premium-cta').forEach(btn => btn.style.setProperty('color', contrast, 'important'));
+        });
+
+        function previewSelfie(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.getElementById('selfie-preview');
+                    img.src = e.target.result;
+                    img.classList.remove('opacity-40');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function handleEntry() {
+            let name = document.getElementById('guest-name').value.trim();
+            const message = document.getElementById('guest-message').value.trim();
+            const selfieInput = document.getElementById('selfie-input');
+            const btn = document.getElementById('btn-continue');
+            const loading = document.getElementById('loading-modal');
+
+            if (!name) name = "Anónimo";
+            
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+            btn.disabled = true;
+
+            // Guardar nombre en localStorage
+            localStorage.setItem('guestName', name);
+            localStorage.setItem('termsAccepted', 'true');
+
+            try {
+                // 1. REGISTRAR VISITA (FIRE & FORWARD)
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        method: 'registrarVisita',
+                        args: [name, message, window.URL_EVENT_ID]
+                    })
+                });
+
+                // 2. SUBIR SELFIE SI EXISTE (FIRE & FORWARD)
+                if (selfieInput.files && selfieInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64 = e.target.result.split(',')[1];
+                        await fetch(GAS_API_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify({
+                                method: 'uploadFile',
+                                args: [base64, `SELFIE_${Date.now()}.jpg`, name, message, null, "Selfie", null, window.URL_EVENT_ID]
+                            })
+                        });
+                        // Redirigir después de iniciar la subida (no-cors no espera respuesta)
+                        location.href = `selector.html?e=${window.URL_EVENT_ID}`;
+                    };
+                    reader.readAsDataURL(selfieInput.files[0]);
+                } else {
+                    // Redirigir si no hay foto
+                    location.href = `selector.html?e=${window.URL_EVENT_ID}`;
+                }
+            } catch (err) {
+                console.error("Entry error:", err);
+                // Si falla el fetch por alguna razón externa, intentamos entrar igual
+                location.href = `selector.html?e=${window.URL_EVENT_ID}`;
+            }
+        }
+
+        function applyBranding(data) {
+            if(!data) return;
+            if (data.fullEventTitle || data.eventName) {
+                const el = document.getElementById('event-title-display');
+                if(el) el.innerText = data.fullEventTitle || data.eventName;
+            }
+            if (data.accentColor) {
+                document.documentElement.style.setProperty('--gilt', data.accentColor);
+                document.documentElement.style.setProperty('--accent-glow', data.accentColor + "66");
+            }
+            if (data.bgColor) document.documentElement.style.setProperty('--bg-color', data.bgColor);
+            if (data.titleColor) {
+                const el = document.getElementById('event-title-display');
+                if(el) el.style.color = data.titleColor;
+            }
+            if (data.fontTitle) {
+                const el = document.getElementById('event-title-display');
+                if(el) el.style.fontFamily = `"${data.fontTitle}", sans-serif`;
+            }
+            if (data.fontPrimary) {
+                document.body.style.fontFamily = `"${data.fontPrimary}", sans-serif`;
+            }
+
+            // Descarga de fuentes
+            [data.fontPrimary, data.fontTitle].forEach(f => {
+                if (f && f !== "Inter") {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = `https://fonts.googleapis.com/css2?family=${f.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
+                    document.head.appendChild(link);
+                }
+            });
+            
+            let bgUrl = data.bgImageUrl || data.heroImageUrl;
+            const bgEl = document.getElementById('hero-section-bg');
+            if (bgUrl && bgUrl !== "null" && bgUrl.trim() !== "undefined") {
+                if (!bgUrl.startsWith('http')) bgUrl = `https://lh3.googleusercontent.com/d/${bgUrl}`;
+                if (bgEl) {
+                    const tBg = new Image();
+                    tBg.onload = () => { bgEl.style.backgroundImage = `url('${bgUrl}')`; };
+                    tBg.onerror = () => { bgEl.style.backgroundColor = data.bgColor || '#0A0A0A'; bgEl.style.backgroundImage = 'none'; };
+                    tBg.src = bgUrl;
+                }
+            } else {
+                if(bgEl) { bgEl.style.backgroundColor = data.bgColor || "#0A0A0A"; bgEl.style.backgroundImage = "none"; }
+            }
+            
+            let logoUrl = data.watermarkUrl;
+            if (logoUrl && logoUrl !== "null" && logoUrl.trim() !== "undefined") {
+                if (!logoUrl.startsWith('http')) logoUrl = `https://lh3.googleusercontent.com/d/${logoUrl}`;
+                const logoEl = document.getElementById('header-logo');
+                if(logoEl) {
+                    const tLogo = new Image();
+                    tLogo.onload = () => { logoEl.src = logoUrl; };
+                    tLogo.src = logoUrl;
+                }
+            }
+
+            // GUARDAR EN CACHÉ PARA EVITAR FLICKER
+            localStorage.setItem('brandingCacheEvent', window.URL_EVENT_ID);
+            localStorage.setItem('fullEventTitle', data.fullEventTitle || data.eventName || "ShareMoments");
+            localStorage.setItem('titleColor', data.titleColor || "#FFFFFF");
+            localStorage.setItem('accentColor', data.accentColor || "#D4AF37");
+            localStorage.setItem('bgImageUrl', data.bgImageUrl || "");
+            localStorage.setItem('heroImageUrl', data.heroImageUrl || "");
+            localStorage.setItem('bgColor', data.bgColor || "#0A0A0A");
+
+            // --- CANDADO DE GOBERNANZA: Bloqueo por Timer ---
+            const now = Date.now();
+            const isTimeExpired = data.fechaCierre && (new Date(data.fechaCierre).getTime() <= now);
+            const isUploadAllowed = (data.timerStatus === 'running' && !isTimeExpired);
+            
+            if (!isUploadAllowed) {
+                const btn = document.getElementById('btn-continue');
+                const photoArea = document.querySelector('.avatar-polaroid');
+                const greet = document.querySelector('p.text-white.text-sm.font-bold');
+                const greetSub = document.querySelector('p.text-white\\/40.text-\\[9px\\]');
+                
+                if (btn) {
+                    btn.innerText = "CAPTURA FINALIZADA";
+                    btn.classList.add('opacity-40', 'grayscale', 'pointer-events-none');
+                    btn.classList.remove('premium-cta');
+                }
+                if (photoArea) {
+                    photoArea.classList.add('opacity-40', 'grayscale', 'pointer-events-none');
+                    photoArea.removeAttribute('onclick');
+                    const photoText = photoArea.querySelector('p');
+                    if(photoText) photoText.innerText = "CERRADO";
+                }
+                if(greet) greet.innerText = "El evento ha cerrado";
+                if(greetSub) greetSub.innerText = "Ya no se permiten más firmas";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // VIP SKIP - Solo si no estamos en modo firma
+            const urlParams = new URLSearchParams(window.location.search);
+            const isSignatureMode = urlParams.get('mode') === 'signature';
+            
+            if (localStorage.getItem('guestName') && !isSignatureMode) {
+                window.location.replace('selector.html' + window.location.search);
+                return;
+            }
+
+            callGAS('getInitialData', [window.URL_EVENT_ID]).then(applyBranding);
+        });
+
+        // FUNCIONES DE CONTROL ADICIONALES
+        window.toggleContactModal = (s) => document.getElementById('contact-modal').classList.toggle('hidden', !s);
+        window.toggleModal = (s) => document.getElementById('terms-modal').classList.toggle('hidden', !s);
+        window.toggleSupportModal = (s) => document.getElementById('support-modal').classList.toggle('hidden', !s);
+        window.toggleQRModal = (show) => {
+            const modal = document.getElementById('qr-modal');
+            if (show) {
+                const eventId = window.URL_EVENT_ID || 'General';
+                const baseUrl = window.location.href.split('?')[0].replace('welcome.html', 'index.html');
+                const fullUrl = baseUrl + '?e=' + eventId;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
+                document.getElementById('pwa-qr-img').src = qrUrl;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        };
+
+        window.toggleAdminGate = (s) => {
+            const el = document.getElementById('admin-gate-modal');
+            if(s) { el.classList.remove('hidden'); el.classList.add('flex'); }
+            else { el.classList.add('hidden'); el.classList.remove('flex'); }
+        };
+
+        window.verifyAdminAccess = () => {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === "3payares") { // Pass temporal — debería venir del servidor
+                 location.href = 'admin/panel.html?id=' + window.URL_EVENT_ID;
+            } else {
+                 alert("Acceso denegado");
+            }
+        };
+
+        window.sendSupportWhatsApp = () => {
+             const query = document.getElementById('support-query').value.trim();
+             if(!query) return alert("Por favor escribe tu duda...");
+             const text = encodeURIComponent(`*Soporte Técnico ShareMoments*\nEvento: ${window.URL_EVENT_ID}\n\n${query}`);
+             window.open(`https://wa.me/573205435184?text=${text}`, '_blank');
+        };
+    </script>
+</body>
+</html>

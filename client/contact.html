@@ -1,0 +1,162 @@
+<!-- Tarjeta de Contacto Glassmorphism - Cesar Payares -->
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Cesar Payares Torres | Contacto</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "primary": "#ffffff", "accent": "#D4AF37", "dark": "#0A0A0B" },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background: #0A0A0A; color: white; transition: background 0.5s; overflow: hidden; }
+        
+        #hero-section-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -30;
+            background-color: #0A0A0A;
+            background-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(10,10,10,1) 100%);
+            transition: opacity 1.5s ease-in-out, transform 20s linear, filter 1s ease-out;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            filter: blur(20px);
+            transform: scale(1.1);
+        }
+        .vignette-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-color, rgba(10,10,10,0.8));
+            z-index: -10;
+        }
+
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .avatar-border { background: linear-gradient(135deg, rgba(212,175,55,1) 0%, rgba(212,175,55,0.2) 100%); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div id="hero-section-bg"></div>
+    <div class="vignette-overlay"></div>
+
+    <!-- Tarjeta Glass -->
+    <div class="relative w-full max-w-[300px] glass rounded-[3rem] p-8 space-y-8 animate-page transition-all duration-500 overflow-hidden">
+        
+        <!-- Botón Cerrar -->
+        <button onclick="history.back()" class="absolute top-6 left-6 text-white/30 hover:text-white transition-colors z-50">
+            <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+
+        <!-- Logo Discreto -->
+        <div class="absolute top-6 right-8">
+            <img class="h-5 opacity-30 grayscale invert" src="https://drive.google.com/thumbnail?id=1qiF8To6GKSsAUlGVOOAZKANXzfPy0QiQ&sz=w200" alt="3PayaresTV">
+        </div>
+
+        <!-- Perfil -->
+        <div class="flex flex-col items-center pt-4 space-y-6">
+            <div class="relative p-1 avatar-border rounded-3xl shadow-2xl">
+                <div class="w-24 h-24 rounded-3xl overflow-hidden bg-zinc-800 border-2 border-dark/50">
+                    <img class="w-full h-full object-cover" src="https://drive.google.com/thumbnail?id=1gM-_WTSkoksYfwGCSZdyUsltx7fdWoei&sz=w400" alt="Cesar Payares Torres">
+                </div>
+            </div>
+            
+            <div class="text-center space-y-2">
+                <h1 class="font-headline text-2xl font-black leading-tight tracking-tight text-white">Cesar<br>Payares Torres</h1>
+                <p class="text-[9px] uppercase font-black tracking-[0.4em] text-accent">CEO de 3PayaresTV</p>
+            </div>
+        </div>
+
+        <!-- Contacto -->
+        <div class="space-y-6 pt-4">
+            <a href="tel:+573205435184" class="flex flex-col items-center gap-2 group">
+                <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">WhatsApp / Cel</span>
+                <span class="text-[15px] font-bold text-white group-hover:text-accent transition-all">+57 320 543 5184</span>
+            </a>
+            
+            <div class="flex flex-col items-center gap-2">
+                <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Ubicación</span>
+                <span class="text-[12px] font-bold text-white text-center italic leading-tight">Cra 54, #30D-30<br><span class="text-[10px] not-italic text-white/50 lowercase">Cartagena - Colombia</span></span>
+            </div>
+
+            <a href="https://3payarestv.cercia.co" target="_blank" class="flex flex-col items-center gap-2 group pt-2">
+                <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Website</span>
+                <span class="text-[14px] font-bold text-white group-hover:text-accent transition-all">3payarestv.cercia.co</span>
+            </a>
+        </div>
+
+        <!-- Botón Guardar -->
+        <button onclick="downloadVCard()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.4em] shadow-[0_15px_30px_-5px_rgba(255,255,255,0.2)] active:scale-95 transition-all text-center">
+            Guardar contacto
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const accent = localStorage.getItem('accentColor') || "#D4AF37";
+            const bg = localStorage.getItem('bgColor') || "#0A0A0A";
+            const hero = localStorage.getItem('heroImage');
+
+            document.documentElement.style.setProperty('--gilt', accent);
+            document.documentElement.style.setProperty('--bg-color', bg + "CC");
+            
+            // Aplicar acento a bordes específicos si existen
+            document.querySelectorAll('.avatar-border').forEach(el => {
+                el.style.background = `linear-gradient(135deg, ${accent} 0%, ${accent}33 100%)`;
+            });
+            document.querySelectorAll('.text-accent').forEach(el => el.style.color = accent);
+
+            if(hero) {
+                const img = new Image();
+                img.src = hero;
+                img.onload = () => {
+                    const bgEl = document.getElementById('hero-section-bg');
+                    if(bgEl) { 
+                        bgEl.style.backgroundImage = `url('${hero}')`;
+                        bgEl.style.opacity = '0.3';
+                        bgEl.style.filter = 'blur(10px)'; 
+                        bgEl.style.transform = 'scale(1.05)';
+                    }
+                };
+            }
+        });
+
+        function downloadVCard() {
+            const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:Cesar Payares Torres
+ORG:3PayaresTV
+TITLE:CEO
+PHOTO;VALUE=URI:https://drive.google.com/thumbnail?id=1gM-_WTSkoksYfwGCSZdyUsltx7fdWoei&sz=w400
+TEL;TYPE=CELL:+573205435184
+ADR;TYPE=WORK:;;Cra 54, #30D-30;Cartagena;Colombia;;
+URL:https://3payarestv.cercia.co
+END:VCARD`;
+
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'Cesar_Payares_Torres.vcf';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+    </script>
+
+</body>
+</html>

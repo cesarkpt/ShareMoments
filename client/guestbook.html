@@ -1,0 +1,249 @@
+<!-- Libro de Firmas Digital - Momentos Etéreos -->
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Libro de Firmas</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Inter:wght@300;400;500;600&family=Permanent+Marker&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#000101", "obsidian": "#0A0A0A" },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"], "marker": ["Permanent Marker"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes messageEnter {
+            from { opacity: 0; transform: translateX(-10px); filter: blur(4px); }
+            to { opacity: 1; transform: translateX(0); filter: blur(0); }
+        }
+        .signature-row {
+            animation: messageEnter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .glass-header {
+            background: transparent;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        body { background: #0A0A0A; color: white; min-height: 100dvh; position: relative; }
+        #hero-bg { position: fixed; inset: 0; z-index: -20; background-size: cover; background-position: center; opacity: 0; transition: opacity 1s; }
+        .vignette-overlay { position: fixed; inset: 0; z-index: -10; background: var(--bg-app, #0A0A0A); opacity: 0.9; }
+        ::-webkit-scrollbar { width: 0px; }
+        #floating-timer-widget.visible { transform: translateX(0); opacity: 1; }
+    </style>
+</head>
+<body class="font-body overflow-x-hidden">
+    <div id="hero-bg"></div>
+    <div class="vignette-overlay"></div>
+    <div id="floating-timer-widget" class="fixed top-4 right-4 z-[200] bg-black/80 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-2 shadow-2xl hidden translate-x-12 opacity-0 transition-all duration-700">
+        <div class="w-2 h-2 rounded-full bg-gilt animate-pulse shadow-[0_0_10px_var(--gilt)]"></div>
+        <span id="floating-timer-display" class="text-[9px] font-black tracking-widest text-white uppercase tabular-nums">00:00:00</span>
+    </div>
+    <!-- Header Minimalista -->
+    <header class="fixed top-0 w-full z-50 glass-header px-8 h-24 flex items-center justify-between border-b border-white/5">
+        <div class="flex flex-col gap-1">
+            <h1 id="event-title-display" class="text-[10px] font-black uppercase tracking-[0.5em] text-gilt">...</h1>
+            <p id="total-messages" class="text-[8px] font-bold text-white/30 uppercase tracking-widest">Cargando dedicatorias...</p>
+        </div>
+        <button onclick="location.href='selector.html'" class="material-symbols-outlined text-white/40 hover:text-white transition-colors">close</button>
+    </header>
+
+    <main class="pt-32 pb-20 px-8 max-w-xl mx-auto space-y-12">
+        <div id="signatures-list" class="space-y-12">
+            <!-- Los mensajes se inyectan aquí -->
+            <div id="loading-book" class="flex flex-col items-center py-20 space-y-4 opacity-30">
+                <div class="w-1 bg-gilt h-12 animate-pulse"></div>
+                <p class="text-[8px] font-bold uppercase tracking-[0.4em]">Abriendo el libro...</p>
+            </div>
+        </div>
+
+        <!-- Estado Vacío -->
+        <div id="empty-book" class="hidden flex flex-col items-center py-20 text-center space-y-6">
+            <span class="material-symbols-outlined text-white/10 text-6xl">edit_note</span>
+            <div class="space-y-2">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">El libro está en blanco</h2>
+                <p class="text-[8px] text-white/30 uppercase tracking-widest">Tu mensaje podría ser el primero</p>
+            </div>
+            <button onclick="location.href='welcome.html'" class="px-8 py-4 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all">Firmar Ahora</button>
+        </div>
+    </main>
+
+    <script>
+        // --- BRIDGE JSONP ---
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+ 
+        const urlParams = new URLSearchParams(window.location.search);
+        window.URL_EVENT_ID = urlParams.get('e') || 'General';
+        
+        if (typeof google === 'undefined' || !google.script) {
+            window.google = { script: { run: (function(){
+                const buildProxy = (h = {}) => new Proxy({}, {
+                    get: (t, p) => {
+                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                        return function(...args) {
+                            const id = "jp_" + Date.now() + Math.random();
+                            window[id] = (r) => { delete window[id]; if(h.success) h.success(r); };
+                            const s = document.createElement("script");
+                            s.src = window.GAS_API_URL + "?callback="+id+"&method="+p+"&args="+encodeURIComponent(JSON.stringify(args));
+                            document.body.appendChild(s);
+                        };
+                    }
+                });
+                return buildProxy();
+            })() } };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const accent = localStorage.getItem('accentColor') || "#D4AF37";
+            const font = localStorage.getItem('selectedFont') || "Epilogue";
+            const eventName = localStorage.getItem('eventName') || "Libro de Firmas";
+            
+            document.documentElement.style.setProperty('--gilt', accent);
+            document.body.style.fontFamily = font + ", sans-serif";
+            document.getElementById('event-title-display').innerText = eventName;
+            
+            refreshBranding();
+            loadGuestbook();
+        });
+
+        function refreshBranding() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data) return;
+                const accent = data.accentColor || "#D4AF37";
+                const event = data.eventName || "Libro de Firmas";
+                const bg = data.bgColor || "#0A0A0A";
+                
+                document.documentElement.style.setProperty('--gilt', accent);
+                document.documentElement.style.setProperty('--bg-app', bg);
+                document.body.style.backgroundColor = bg;
+                
+                let bgUrl = data.bgImageUrl || data.heroImageUrl;
+                if (bgUrl && bgUrl !== "null" && bgUrl.trim() !== "") {
+                    if (!bgUrl.startsWith('http')) bgUrl = `https://lh3.googleusercontent.com/d/${bgUrl}`;
+                    const h = document.getElementById('hero-bg');
+                    h.style.backgroundImage = `url('${bgUrl}')`;
+                    h.style.opacity = '0.6';
+                }
+
+                document.getElementById('event-title-display').innerText = event;
+                document.title = event + " - Firmas";
+                localStorage.setItem('accentColor', accent);
+                localStorage.setItem('eventName', event);
+                initFloatingTimer(data);
+            }).getInitialData(window.URL_EVENT_ID);
+        }
+
+        function initFloatingTimer(data) {
+            const el = document.getElementById('floating-timer-widget');
+            const display = document.getElementById('floating-timer-display');
+            if (!el || !display || !data) return;
+
+            // ACTUALIZAR ESTADO DEL BOTÓN DE FIRMA
+            const signBtn = document.querySelector('#empty-book button');
+            const now = Date.now();
+            const isTimeExpired = data.fechaCierre && (new Date(data.fechaCierre).getTime() <= now);
+            const isUploadAllowed = (data.timerStatus === 'running' && !isTimeExpired);
+            
+            if (signBtn) {
+                if (!isUploadAllowed) {
+                    signBtn.classList.add('opacity-40', 'grayscale', 'pointer-events-none');
+                    signBtn.innerText = "CAPTURA CERRADA";
+                    signBtn.removeAttribute('onclick');
+                } else {
+                    signBtn.classList.remove('opacity-40', 'grayscale', 'pointer-events-none');
+                    signBtn.innerText = "Firmar Ahora";
+                    if(!signBtn.hasAttribute('onclick')) {
+                        signBtn.setAttribute('onclick', "location.href='welcome.html' + window.location.search");
+                    }
+                }
+            }
+
+            if (data.timerStatus === 'running' && (data.fechaCierre || data.duracionRestanteMs)) {
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('visible'), 100);
+                
+                const endTime = data.fechaCierre ? new Date(data.fechaCierre).getTime() : (Date.now() + data.duracionRestanteMs);
+                
+                const update = () => {
+                    const now = Date.now();
+                    const diff = endTime - now;
+                    if (diff <= 0) {
+                        display.innerText = "TIEMPO AGOTADO";
+                        el.querySelector('.animate-pulse').style.backgroundColor = '#ef4444';
+                        
+                        if (signBtn) {
+                            signBtn.classList.add('opacity-40', 'grayscale', 'pointer-events-none');
+                            signBtn.innerText = "CAPTURA CERRADA";
+                            signBtn.removeAttribute('onclick');
+                        }
+                        return;
+                    }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    display.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                };
+                update();
+                setInterval(update, 1000);
+            } else if (data.timerStatus === 'paused') {
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('visible'), 100);
+                el.querySelector('.animate-pulse').classList.remove('animate-pulse');
+                const dist = data.duracionRestanteMs || 0;
+                const h = Math.floor(dist / 3600000);
+                const m = Math.floor((dist % 3600000) / 60000);
+                const s = Math.floor((dist % 60000) / 1000);
+                display.innerText = `PAUSA ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        function loadGuestbook() {
+            google.script.run.withSuccessHandler(data => {
+                const list = document.getElementById('signatures-list');
+                const loading = document.getElementById('loading-book');
+                loading.classList.add('hidden');
+
+                if (!data || data.length === 0) {
+                    const emptyEl = document.getElementById('empty-book');
+                    emptyEl.classList.remove('hidden');
+                    const titleH2 = emptyEl.querySelector('h2');
+                    if (titleH2) titleH2.innerText = "¡ERES EL PRIMERO!";
+                    document.getElementById('total-messages').innerText = "0 Dedicatorias";
+                    
+                    setTimeout(() => {
+                        location.href = 'welcome.html' + window.location.search;
+                    }, 3000);
+                    return;
+                }
+
+                document.getElementById('total-messages').innerText = `${data.length} Dedicatorias Registradas`;
+                list.innerHTML = "";
+
+                data.forEach((entry, index) => {
+                    const row = document.createElement('div');
+                    row.className = "signature-row pb-10 space-y-3";
+                    row.style.animationDelay = `${index * 0.15}s`;
+                    
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-2 h-[1px] bg-gilt"></span>
+                            <h3 class="text-[9px] font-black uppercase tracking-[0.3em] text-gilt">${entry.nombre}</h3>
+                        </div>
+                        <p class="font-marker text-white/90 text-xl leading-relaxed pl-5">${entry.mensaje}</p>
+                    `;
+                    list.appendChild(row);
+                });
+            }).getGuestbook(window.URL_EVENT_ID);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!-- Ventana Subir Fotos - Crea tu Momento -->
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ShareMoments - Subir Momentos</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Inter:wght@300;400;500;600&family=Permanent+Marker&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { 
+                        "primary": "#000101", 
+                        "surface": "#f7f9fb",
+                        "gilt": "var(--gilt, #D4AF37)"
+                    },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"] },
+                    borderRadius: { "xl": "0.5rem" },
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes pageEnter {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-page { animation: pageEnter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        
+        .polaroid-preview {
+            background: white;
+            padding: 12px 12px 48px 12px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px;
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        .glass-input:focus { border-color: var(--gilt); background: rgba(255,255,255,0.08); }
+        
+        body { background: #0A0A0A; color: white; transition: background 0.5s; overflow: hidden; height: 100dvh; }
+        
+        #hero-section-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -30;
+            background-color: #0A0A0A;
+            background-image: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(10,10,10,1) 100%);
+            transition: opacity 1.5s ease-in-out, transform 20s linear, filter 1s ease-out;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            filter: blur(20px);
+            transform: scale(1.1);
+        }
+        .vignette-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, var(--bg-color, rgba(10,10,10,0.8)) 100%);
+            z-index: -10;
+            pointer-events: none;
+        }
+
+        .custom-loader {
+            width: 24px; height: 24px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: black;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #floating-timer-widget { transform: translateX(3rem); opacity: 0; pointer-events: none; transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1); }
+        #floating-timer-widget.visible { transform: translateX(0); opacity: 1; pointer-events: auto; }
+        
+        .premium-cta {
+            background-color: var(--gilt) !important;
+            background-image: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.4) 55%, rgba(255,255,255,0) 70%) !important;
+            background-size: 200% 100% !important;
+            color: black !important;
+            animation: shimmer 3s infinite linear !important;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+            position: relative; overflow: hidden;
+            border: none !important;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+</head>
+<body class="font-body h-[100dvh] animate-page overflow-hidden flex flex-col">
+    <div id="hero-section-bg"></div>
+    <div class="vignette-overlay"></div>
+
+    <!-- Logo Discreto Superior -->
+    <img id="header-logo" src="https://lh3.googleusercontent.com/d/1Vj7YO_9wKGq147cvmmWxdyu6pYLdBPD9" class="fixed top-8 left-0 right-0 mx-auto h-12 object-contain opacity-90 pointer-events-none z-[1000]" alt="ShareMoments">
+
+    <div id="floating-timer-widget" class="fixed top-6 right-6 z-[200] bg-black/80 backdrop-blur-md border border-white/10 rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl hidden">
+        <div class="w-2.5 h-2.5 rounded-full bg-gilt animate-pulse shadow-[0_0_12px_var(--gilt)]"></div>
+        <span id="floating-timer-display" class="text-[12px] font-black tracking-[0.2em] text-white uppercase tabular-nums">00:00:00</span>
+    </div>
+    <main class="h-full w-full flex flex-col items-center justify-center px-6 relative z-10 space-y-6 pt-32">
+        <!-- Real-time Polaroid Preview -->
+        <section class="flex flex-col items-center justify-center relative space-y-4">
+            <!-- Quota Badge -->
+            <div id="quota-badge" class="hidden opacity-0 translate-y-2 transition-all duration-700">
+                <div class="px-5 py-2 bg-gilt/10 border border-gilt/20 rounded-full flex items-center gap-3 shadow-xl">
+                    <span class="material-symbols-outlined text-gilt text-sm">filter_none</span>
+                    <span id="quota-text" class="text-[9px] font-black uppercase tracking-[0.2em] text-gilt/80">Cargando cupo...</span>
+                </div>
+            </div>
+
+            <div id="polaroid-card" class="polaroid-preview w-52 aspect-[4/5] flex flex-col relative overflow-hidden">
+                <div id="imagePicker" class="w-full aspect-square bg-zinc-100 flex items-center justify-center overflow-hidden relative cursor-pointer group transition-all">
+                    <img id="preview-img" class="w-full h-full object-cover hidden z-0" src="" />
+                    <div id="preview-placeholder" class="text-center space-y-1 group-hover:scale-110 transition-transform duration-300 z-10">
+                        <span class="material-symbols-outlined text-3xl text-zinc-400 group-hover:text-gilt transition-colors">add_a_photo</span>
+                        <p class="text-[7px] text-zinc-500 font-bold uppercase tracking-widest group-hover:text-gilt transition-colors">Añadir Foto</p>
+                    </div>
+                    <!-- Hover overlay para atrapar mejor el clic -->
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20">
+                        <span class="material-symbols-outlined text-white text-4xl">photo_camera</span>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center justify-center flex-grow pt-2 px-3 space-y-0.5">
+                    <p id="preview-text" class="font-['Permanent_Marker',_cursive] text-zinc-800 text-xs text-center leading-tight">Viviendo el momento...</p>
+                    <p id="preview-author" class="text-[7px] font-black text-zinc-400 uppercase tracking-[0.2em]">Invitado</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Section -->
+        <section class="space-y-4 animate-page" style="animation-delay: 0.1s">
+            <div class="space-y-3">
+                
+                <!-- 1. Textbox Algo Especial (Arriba) -->
+                <div class="space-y-1">
+                    <label class="text-[8px] uppercase tracking-[0.2em] font-black text-white/60 px-1">Escríbeles algo especial</label>
+                    <textarea id="input-text" class="w-full glass-input rounded-xl px-5 py-4 text-xs font-medium outline-none resize-none placeholder-white/30" placeholder="Tu mensaje..." rows="1"></textarea>
+                </div>
+                
+                <!-- 2. Archivo Oculto (Camuflado en la Polaroid) -->
+                <div class="hidden">
+                    <input type="file" id="fileInput" accept="image/*" />
+                </div>
+
+                <!-- 3. Firma Vinculada Fija (Directo de Welcome) -->
+                <div id="name-field-group" class="space-y-1">
+                    <label class="dynamic-label text-[8px] uppercase tracking-[0.2em] font-black text-gilt/60 px-1">Firma del Invitado</label>
+                    <input id="input-author" type="text" class="w-full bg-black/40 border border-white/5 text-white/40 rounded-xl px-5 py-4 text-xs font-medium outline-none cursor-not-allowed" readonly>
+                </div>
+                
+            </div>
+
+            <div class="space-y-4 pt-2">
+                <div class="flex flex-col gap-3 w-full">
+                    <!-- Botones de Acción Premium Sincronizados -->
+                    <button type="button" onclick="submitPhoto('selector')" class="premium-cta w-full py-5 font-black text-[10px] tracking-[0.3em] rounded-2xl shadow-2xl active:scale-95 transition-all uppercase leading-tight">
+                        Subir y ver Galería
+                    </button>
+                    <button type="button" onclick="submitPhoto('reset')" class="w-full py-5 bg-white text-black font-black text-[10px] tracking-[0.3em] rounded-2xl shadow-2xl active:scale-95 transition-all uppercase leading-tight">
+                        Subir otro momento más
+                    </button>
+                </div>
+                <!-- Cancelar -->
+                <button onclick="window.history.back()" class="w-full pt-2 pb-1 text-white/30 hover:text-white font-black text-[8px] uppercase tracking-[0.4em] active:scale-95 transition-all">
+                    Cancelar o Volver 
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer Luxe -->
+        <footer id="main-footer" class="py-4 flex items-center justify-center gap-3 text-[8px] font-black uppercase tracking-[0.4em] text-white/60 transition-all z-10">
+            <button type="button" onclick="toggleContactModal(true)" class="hover:text-gilt transition-colors">© 2026 3PayaresTV</button>
+            <div id="footer-sep" class="w-[1px] h-3 bg-white/40"></div>
+            <button type="button" onclick="toggleModal(true)" class="hover:text-white transition-colors">Términos y Condiciones</button>
+        </footer>
+
+</main>
+
+    <!-- MODAL CONTACTO -->
+    <div id="contact-modal" class="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl hidden items-center justify-center p-6 transition-all duration-300">
+        <div class="relative w-full max-w-[320px] bg-zinc-950 rounded-[3rem] p-10 space-y-6 border border-white/20 shadow-2xl text-center flex flex-col items-center overflow-y-auto max-h-[90vh]">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
+            <!-- Perfil -->
+            <div class="flex flex-col items-center pt-2 space-y-5">
+                <div class="w-24 h-24 rounded-3xl overflow-hidden border-2 border-white/20 shadow-xl mx-auto"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/d/1gM-_WTSkoksYfwGCSZdyUsltx7fdWoei"></div>
+                <div class="space-y-1 text-center">
+                    <h1 class="font-headline text-2xl font-black leading-tight tracking-tight text-white">Cesar<br>Payares Torres</h1>
+                    <p class="text-[9px] uppercase font-black tracking-[0.4em] text-gilt">CEO de 3PayaresTV</p>
+                </div>
+            </div>
+            <!-- Contacto Info Extra -->
+            <div class="space-y-6 pt-4 w-full text-center">
+                <a href="tel:+573205435184" class="flex flex-col items-center gap-2 group">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">WhatsApp / Cel</span>
+                    <span class="text-[15px] font-bold text-white group-hover:text-gilt transition-all">+57 320 543 5184</span>
+                </a>
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Ubicación</span>
+                    <span class="text-[12px] font-bold text-white text-center italic leading-tight">Cra 54, #30D-30<br><span class="text-[10px] not-italic text-white/50 lowercase">Cartagena - Colombia</span></span>
+                </div>
+                <a href="https://3payarestv.cercia.co" target="_blank" class="flex flex-col items-center gap-2 group pt-2">
+                    <span class="text-[11px] uppercase font-black text-white/30 tracking-widest">Website</span>
+                    <span class="text-[14px] font-bold text-white group-hover:text-gilt transition-all">3payarestv.cercia.co</span>
+                </a>
+            </div>
+            <div class="w-full space-y-3 pt-2">
+                <button onclick="downloadVCard()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-gilt transition-all active:scale-95">Guardar contacto</button>
+                <button onclick="toggleContactModal(false)" class="w-full py-2 text-white/20 text-[9px] font-black uppercase tracking-[0.4em]">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TERMINOS -->
+    <div id="terms-modal" class="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl hidden items-center justify-center p-6 transition-all duration-300">
+        <div class="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-[2.5rem] p-10 space-y-8 shadow-2xl flex flex-col max-h-[85vh] text-center relative">
+            <div class="space-y-6 text-white text-[10px] leading-relaxed font-light overflow-y-auto pr-2 custom-scrollbar text-left italic">
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">1. Condiciones de Uso</h3>
+                    <p class="text-white/70">El código QR otorga un derecho de visualización exclusivo para los asistentes. Las imágenes son para disfrute personal y no comercial. Queda prohibida la descarga o distribución no autorizada fuera de la plataforma.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">2. Privacidad y Datos</h3>
+                    <p class="text-white/70">Las fotos se almacenan en un entorno seguro por un máximo de 30 días tras el evento y luego se eliminan de forma permanente. Como usuario, conservas el derecho de solicitar la retirada inmediata de cualquier foto de tu autoría.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">3. Autorización de Imagen</h3>
+                    <p class="text-white/70">Al participar, aceptas que tu imagen captada durante el evento pueda ser proyectada en las pantallas del recinto y visualizada en la galería compartida con el resto de los invitados, con fines recreativos y de celebración.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">4. Responsabilidad de Contenido</h3>
+                    <p class="text-white/70">Cada usuario es responsable de lo que decide compartir. La organización se reserva el derecho de retirar cualquier imagen que considere inapropiada para mantener un ambiente seguro y respetuoso para todos.</p>
+                </section>
+                <section class="space-y-1">
+                    <h3 class="font-bold text-gilt uppercase">5. Propiedad y Copias</h3>
+                    <p class="text-white/70">La tecnología pertenece a 3PayaresTV y los derechos de la galería final corresponden al Organizador. Para copias en alta resolución o impresiones físicas consulta las opciones con 3PayaresIMP.</p>
+                </section>
+            </div>
+            <button onclick="toggleModal(false)" class="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em]">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Botones Flotantes Inferiores (Mayor Visibilidad) -->
+    <div class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3">
+        <!-- WhatsApp -->
+        <button onclick="toggleContactModal(true)" class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 shadow-lg hover:bg-white/20 hover:text-white active:scale-90 transition-all">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+        </button>
+        <!-- Admin Flotante -->
+        <button onclick="adminAccess()" class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/70 shadow-lg hover:bg-white/20 hover:text-white active:scale-90 transition-all">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+        </button>
+    </div>
+
+    <!-- Luxe Loading Modal -->
+    <div id="loading-modal" class="fixed inset-0 z-[300] bg-black/90 backdrop-blur-xl hidden items-center justify-center p-6 transition-all duration-500">
+        <div class="flex flex-col items-center space-y-8 animate-page">
+            <div class="relative w-20 h-20">
+                <div class="absolute inset-0 rounded-full border-2 border-white/5"></div>
+                <div class="absolute inset-0 rounded-full border-t-2 border-gilt animate-spin"></div>
+                <span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white/20 text-3xl">auto_fix_high</span>
+            </div>
+            <div class="text-center space-y-2">
+                <h2 id="loading-title" class="text-white font-black text-xs uppercase tracking-[0.4em] animate-pulse">Creando Recuerdo</h2>
+                <p id="loading-status" class="text-white/30 text-[9px] uppercase font-bold tracking-widest">Espera un momento...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta Minimalista -->
+    <div id="custom-alert" class="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md hidden items-center justify-center p-6">
+        <div class="bg-zinc-950 border border-white/20 w-full max-w-xs rounded-[2rem] p-10 space-y-8 text-center shadow-2xl">
+            <p id="alert-message" class="text-white text-sm font-medium leading-relaxed"></p>
+            <button id="alert-btn" onclick="closeAlert()" class="w-full py-4 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest">Ok</button>
+        </div>
+    </div>
+
+    <script>
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        let eventId = urlParams.get('e') || urlParams.get('id') || localStorage.getItem('lastEventId') || 'General';
+        if (eventId.toLowerCase() === 'event' || eventId === "") eventId = "General";
+        window.URL_EVENT_ID = eventId;
+        localStorage.setItem('lastEventId', window.URL_EVENT_ID);
+        // --- BRIDGE REDEFINIDO (GITHUB -> GAS via FETCH HÍBRIDO) ---
+        if (typeof google === 'undefined' || !google.script) {
+            window.google = { script: { run: (function(){
+                const buildProxy = (h = {}) => new Proxy({}, {
+                    get: (t, p) => {
+                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                        return async function(...args) {
+                            if (p === 'uploadFile') {
+                                try {
+                                    const fd = new FormData();
+                                    fd.append('method', p);
+                                    fd.append('args', JSON.stringify(args));
+                                    await fetch(window.GAS_API_URL, {
+                                        method: 'POST',
+                                        mode: 'no-cors',
+                                        body: fd
+                                    });
+                                    if(h.success) {
+                                        return new Promise(resolve => {
+                                            setTimeout(() => { h.success({success: true}); resolve({success: true}); }, 2500);
+                                        });
+                                    }
+                                } catch (err) { console.error("Error G-Sync POST:", err); }
+                            } else {
+                                const id = "jp_" + Date.now() + Math.random().toString(36).substring(7);
+                                window[id] = (r) => { delete window[id]; if(h.success) h.success(r); };
+                                const s = document.createElement("script");
+                                s.src = window.GAS_API_URL + "?callback="+id+"&method="+p+"&args="+encodeURIComponent(JSON.stringify(args));
+                                document.body.appendChild(s);
+                            }
+                        };
+                    }
+                });
+                return buildProxy();
+            })() } };
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        const imagePicker = document.getElementById('imagePicker');
+        const previewImg = document.getElementById('preview-img');
+        const previewPlaceholder = document.getElementById('preview-placeholder');
+        const inputText = document.getElementById('input-text');
+        const inputAuthor = document.getElementById('input-author');
+        const previewText = document.getElementById('preview-text');
+        const previewAuthor = document.getElementById('preview-author');
+        const polaroidCard = document.getElementById('polaroid-card');
+        const loadingModal = document.getElementById('loading-modal');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const cachedName = localStorage.getItem('guestName');
+            if(!cachedName) {
+                location.href = 'welcome.html' + window.location.search;
+                return;
+            }
+
+            // --- OPTIMIZACIÓN PRE-CARGA FONDOS ---
+            const cachedHero = localStorage.getItem('heroImage');
+            if(cachedHero) {
+                const bg = document.getElementById('hero-section-bg');
+                if(bg) { 
+                    bg.style.backgroundImage = `url('${cachedHero}')`;
+                    bg.style.opacity = '0.7';
+                    bg.style.filter = 'blur(0px)';
+                    bg.style.transform = 'scale(1)';
+                }
+            }
+            
+            inputAuthor.value = cachedName;
+            previewAuthor.innerText = cachedName.toUpperCase();
+            
+            const nameField = document.getElementById('name-field-group');
+            if(nameField) nameField.style.display = 'none';
+
+            refreshBranding();
+        });
+
+        function isColorLight(color) {
+            if (!color || typeof color !== 'string') return false;
+            const hex = color.replace('#', '');
+            if (hex.length < 6) return false;
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            if (isNaN(r) || isNaN(g) || isNaN(b)) return false;
+            const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return brightness > 160; 
+        }
+
+        function applyBranding(bg, accent, watermark, font = "Inter", hero = null, titleColor = "#FFFFFF", bgImg = null) {
+            document.documentElement.style.setProperty('--gilt', accent);
+            document.body.style.backgroundColor = bg;
+            document.body.style.fontFamily = `"${font}", sans-serif`;
+            
+            const titleDisp = document.getElementById('event-title-display');
+            if (titleDisp && titleColor) titleDisp.style.color = titleColor;
+
+            const finalBg = bgImg || hero;
+            if (finalBg) {
+                const bgEl = document.getElementById('hero-section-bg');
+                if (bgEl) {
+                    bgEl.style.backgroundImage = `url('${finalBg}')`;
+                    bgEl.style.opacity = '1';
+                    bgEl.style.filter = 'brightness(0.6)';
+                    bgEl.style.transform = 'scale(1)';
+                }
+            }
+            
+            // CONTRASTE INTELIGENTE
+            function getContrastYIQ(hex){
+                if(!hex || hex === 'undefined') return 'black';
+                const color = hex.replace("#", "");
+                const r = parseInt(color.substr(0,2),16);
+                const g = parseInt(color.substr(2,2),16);
+                const b = parseInt(color.substr(4,2),16);
+                const yiq = ((r*299)+(g*587)+(b*114))/1000;
+                return (yiq >= 128) ? 'black' : 'white';
+            }
+            const contrast = getContrastYIQ(accent);
+            document.querySelectorAll('.premium-cta').forEach(btn => {
+                btn.style.setProperty('color', contrast, 'important');
+                btn.querySelectorAll('.material-symbols-outlined').forEach(icon => icon.style.color = contrast);
+            });
+            
+            if (font !== "Inter" && font !== "Epilogue") {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}:wght@400;700&display=swap`;
+                document.head.appendChild(link);
+            }
+
+            document.querySelectorAll('.btn-submit-dynamic').forEach(el => el.style.backgroundColor = accent);
+            
+            if (isColorLight(bg)) {
+                document.body.style.color = "#000101";
+                const titleDisp = document.getElementById('event-title-display');
+                if (titleDisp) titleDisp.style.color = "#000101";
+                document.querySelectorAll('.glass-input').forEach(el => {
+                    el.style.backgroundColor = "rgba(0,0,0,0.05)";
+                    el.style.borderColor = "rgba(0,0,0,0.1)";
+                    el.style.color = "#000000";
+                });
+                document.querySelectorAll('label').forEach(el => {
+                    if(!el.classList.contains('dynamic-label')) {
+                        el.classList.replace('text-white/60', 'text-black/60');
+                    }
+                });
+                
+                const footer = document.getElementById('main-footer');
+                const sep = document.getElementById('footer-sep');
+                if(footer) footer.classList.replace('text-white/60', 'text-black/60');
+                if(sep) sep.classList.replace('bg-white/20', 'bg-black/20');
+
+                document.querySelectorAll('#contact-modal *, #terms-modal *, #loading-modal *, #custom-alert *').forEach(el => {
+                    if (el.classList.contains('text-white')) el.style.color = "#FFFFFF";
+                });
+            }
+            
+            const hLogo = document.getElementById('header-logo');
+            let wmUrl = watermark;
+            if (wmUrl && wmUrl !== "null" && wmUrl.trim() !== "undefined") {
+                if (!wmUrl.startsWith('http')) wmUrl = `https://lh3.googleusercontent.com/d/${wmUrl}`;
+                if(hLogo) hLogo.src = wmUrl;
+            } else {
+                if(hLogo) hLogo.src = "https://lh3.googleusercontent.com/d/1Vj7YO_9wKGq147cvmmWxdyu6pYLdBPD9";
+            }
+            
+            document.documentElement.style.setProperty('--bg-color', bg + "CC");
+            localStorage.setItem('accentColor', accent);
+            localStorage.setItem('bgColor', bg);
+            if (watermark) localStorage.setItem('watermarkUrl', watermark);
+        }
+
+        function refreshBranding() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data) return;
+                window.EVENT_FOLDER_IDS = data.folderIds || {};
+                const cachedAccent = data.accentColor || localStorage.getItem('accentColor') || "#D4AF37";
+                const cachedBg = data.bgColor || localStorage.getItem('bgColor') || "#0A0A0A";
+                const cachedWatermark = data.watermarkUrl || localStorage.getItem('watermarkUrl');
+                const fullTitle = data.fullEventTitle || data.eventName || localStorage.getItem('fullEventTitle') || localStorage.getItem('eventName') || "ShareMoments";
+                const font = data.fontPrimary || "Inter";
+                const titleColor = data.titleColor || localStorage.getItem('titleColor') || "#FFFFFF";
+                
+                window.currentProfileData = data; 
+                
+                const titleDisp = document.getElementById('event-title-display');
+                if (titleDisp) titleDisp.innerText = fullTitle;
+                document.title = fullTitle + " - Subir";
+                
+                // Mostrar Cuota si está disponible
+                if (data.photosRemaining !== undefined) {
+                    const qBadge = document.getElementById('quota-badge');
+                    const qText = document.getElementById('quota-text');
+                    qBadge.classList.remove('hidden');
+                    setTimeout(() => qBadge.classList.replace('opacity-0', 'opacity-100'), 100);
+                    qBadge.classList.replace('translate-y-2', 'translate-y-0');
+                    qText.innerText = `Te quedan ${data.photosRemaining} fotos de tu cupo`;
+                    window.PHOTOS_REMAINING = data.photosRemaining;
+                }
+                
+                applyBranding(cachedBg, cachedAccent, cachedWatermark, font, data.heroImageUrl, titleColor, data.bgImageUrl);
+                initFloatingTimer(data);
+            }).getInitialData(window.URL_EVENT_ID, localStorage.getItem('guestName'));
+        }
+
+        function initFloatingTimer(data) {
+            const el = document.getElementById('floating-timer-widget');
+            const display = document.getElementById('floating-timer-display');
+            if (!el || !display || !data) return;
+
+            const isRunning = data.timerStatus === 'running' || (data.timerStatus !== 'paused' && data.fechaCierre);
+            if (isRunning && (data.fechaCierre || data.duracionRestanteMs)) {
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('visible'), 100);
+                
+                const endTime = data.fechaCierre ? new Date(data.fechaCierre).getTime() : (Date.now() + data.duracionRestanteMs);
+                
+                const update = () => {
+                    const now = Date.now();
+                    const diff = endTime - now;
+                    if (diff <= 0) {
+                        display.innerText = "TIEMPO AGOTADO";
+                        el.querySelector('.animate-pulse').style.backgroundColor = '#ef4444';
+                        return;
+                    }
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    display.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                };
+                update();
+                setInterval(update, 1000);
+            } else if (data.timerStatus === 'paused') {
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('visible'), 100);
+                el.querySelector('.animate-pulse').classList.remove('animate-pulse');
+                const dist = data.duracionRestanteMs || 0;
+                const h = Math.floor(dist / 3600000);
+                const m = Math.floor((dist % 3600000) / 60000);
+                const s = Math.floor((dist % 60000) / 1000);
+                display.innerText = `PAUSA ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        window.toggleModal = (show) => {
+            const modal = document.getElementById('terms-modal');
+            modal.style.display = show ? 'flex' : 'none';
+        };
+
+        window.toggleContactModal = (show) => {
+            const modal = document.getElementById('contact-modal');
+            modal.style.display = show ? 'flex' : 'none';
+        };
+
+        window.downloadVCard = function() {
+            const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:Cesar Payares Torres\nORG:3PayaresTV\nTEL;TYPE=CELL:+573205435184\nEND:VCARD`;
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'Cesar_Payares.vcf';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+
+        imagePicker.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewImg.classList.remove('hidden');
+                    previewPlaceholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        inputText.addEventListener('input', (e) => previewText.innerText = e.target.value || "Viviendo el momento...");
+
+        function showAlert(msg) {
+            document.getElementById('alert-message').innerText = msg;
+            document.getElementById('custom-alert').style.display = 'flex';
+        }
+        function closeAlert() { document.getElementById('custom-alert').style.display = 'none'; }
+
+        async function createPolaroid(imgData, autor, mensaje) {
+            const perfiles = JSON.parse(localStorage.getItem('profiles') || '{}');
+            const eventId = window.URL_EVENT_ID;
+            const profile = window.currentProfileData || {}; 
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = async function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const w = 800; const h = 1000;
+                    canvas.width = w; canvas.height = h;
+                    
+                    // Fondo Polaroid
+                    ctx.fillStyle = '#FFFFFF'; 
+                    ctx.fillRect(0, 0, w, h);
+                    
+                    // Dibujar Foto Central (Crop Square)
+                    const side = 720; const x = 40; const y = 40;
+                    let sx, sy, sw, sh;
+                    if (img.width > img.height) { sw = img.height; sh = img.height; sx = (img.width - sw) / 2; sy = 0; }
+                    else { sw = img.width; sh = img.width; sx = 0; sy = (img.height - sh) / 2; }
+                    ctx.drawImage(img, sx, sy, sw, sh, x, y, side, side);
+                    
+                    // Dibujar Marca de Agua si está activa (Superior Derecha)
+                    if (profile.isWatermarkEnabled === true && profile.watermarkUrl) {
+                        await new Promise(r => {
+                            const wm = new Image();
+                            wm.crossOrigin = "anonymous";
+                            wm.onload = () => {
+                                const wmSize = 120;
+                                ctx.globalAlpha = 0.8;
+                                ctx.drawImage(wm, w - wmSize - 50, 50, wmSize, wmSize);
+                                ctx.globalAlpha = 1.0;
+                                r();
+                            };
+                            wm.onerror = r;
+                            wm.src = profile.watermarkUrl;
+                        });
+                    }
+
+                    // Textos Inferiores
+                    ctx.fillStyle = '#18181b'; ctx.textAlign = 'center';
+                    ctx.font = 'bold 24px "Epilogue", sans-serif';
+                    ctx.fillText(autor.toUpperCase(), w/2, h - 90);
+                    ctx.font = '32px "Permanent Marker", cursive';
+                    const text = mensaje.length > 25 ? mensaje.substring(0, 22) + "..." : mensaje;
+                    ctx.fillText(text, w/2, h - 45);
+                    
+                    resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+                };
+                img.src = imgData;
+            });
+        }
+
+        window.submitPhoto = async function(action) {
+            if (window.PHOTOS_REMAINING !== undefined && window.PHOTOS_REMAINING <= 0) {
+                showAlert("Has alcanzado el límite de fotos de tu cupo. ¡Gracias por participar!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const autor = inputAuthor.value.trim();
+            const mensaje = inputText.value.trim() || "...";
+            const tag = "General";
+
+            if (!file) return showAlert("Por favor, selecciona una foto primero.");
+            loadingModal.style.display = 'flex';
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Orig = e.target.result.split(',')[1];
+                const stamp = Date.now();
+                
+                // Solo subimos la original a la carpeta de Invitados (G_INV_ORIG)
+                google.script.run.withSuccessHandler(() => {
+                    confetti({ 
+                        particleCount: 200, 
+                        spread: 80, 
+                        origin: { y: 0.6 },
+                        zIndex: 5000 
+                    });
+                    setTimeout(() => { 
+                        if(action==='reset') location.reload(); 
+                        else window.location.replace(`gallery.html?type=guests&e=${window.URL_EVENT_ID}`); 
+                    }, 2000);
+                }).uploadFile(base64Orig, `ORG_${stamp}.jpg`, autor, mensaje, null, tag, window.URL_EVENT_ID);
+            };
+            reader.readAsDataURL(file);
+        };
+    </script>
+</body>
+</html>

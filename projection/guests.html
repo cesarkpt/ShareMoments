@@ -1,0 +1,303 @@
+<!-- Proyección Invitados - Optimización Full Screen -->
+<!DOCTYPE html>
+<html class="h-full overflow-hidden" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>3PayaresTV - Slideshow Invitados</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Reenie+Beanie&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { "primary": "#000101", "secondary": "#2b6954" },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"], "handwritten": ["Reenie Beanie"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { background-color: #000000; overflow: hidden; height: 100vh; width: 100vw; margin: 0; }
+        .polaroid-main {
+            background: white;
+            padding: 20px 20px 80px 20px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
+            transform-origin: center center;
+            transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slide-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8) rotate(-5deg);
+            transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+        }
+        .slide-container.active {
+            opacity: 1;
+            transform: scale(1) rotate(2deg);
+            z-index: 20;
+        }
+        .bg-blur {
+            position: absolute;
+            inset: -10%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(80px) brightness(0.3);
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
+            z-index: 1;
+        }
+        .bg-blur.active { opacity: 0.6; }
+        .glass-qr { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); }
+        .brand-floating {
+            position: fixed;
+            top: 48px;
+            left: 48px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="font-body text-white select-none">
+    <!-- Dynamic Blurred Background -->
+    <!-- Dynamic Blurred Background -->
+    <div id="bg-blur-a" class="bg-blur"></div>
+    <div id="bg-blur-b" class="bg-blur"></div>
+
+    <header class="brand-floating">
+        <img id="header-logo" class="w-[180px] h-auto object-contain opacity-60" src="https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_" alt="Logo"/>
+    </header>
+
+    <!-- Botón de Cerrar (Navegación) -->
+    <button onclick="window.history.back()" class="fixed top-8 right-8 z-[200] w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95 group">
+        <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+
+    <main class="relative w-full h-full flex items-center justify-center">
+        <!-- Floating Empty State Card -->
+        <div id="empty-projection" class="hidden flex flex-col items-center justify-center space-y-12 animate-page">
+            <h2 class="font-headline font-black text-6xl tracking-widest text-white/10 uppercase">Esperando Momentos</h2>
+            <div class="polaroid-main opacity-20 scale-90">
+                <div class="w-[40vh] aspect-square bg-zinc-200 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-9xl text-zinc-400">hourglass_empty</span>
+                </div>
+                <div class="mt-8 text-center">
+                    <p class="font-['Reenie_Beanie'] text-6xl text-zinc-400">Capturando magia...</p>
+                </div>
+            </div>
+            <p class="text-[12px] font-black uppercase tracking-[1em] text-[#D4AF37] animate-pulse">Escanea el QR para participar</p>
+        </div>
+
+        <div id="slides-wrapper" class="relative w-full h-full">
+            <div id="slide-a" class="slide-container"></div>
+            <div id="slide-b" class="slide-container"></div>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-4 md:bottom-16 left-4 md:left-16 z-50 transition-all duration-500">
+        <div class="glass-qr p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-white/10 shadow-2xl">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-56 lg:h-56 bg-white flex items-center justify-center rounded-xl md:rounded-2xl p-2 md:p-4 shadow-inner mx-auto transition-all duration-500">
+                <img class="w-full h-full object-contain" src="https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=https://google.com&choe=UTF-8&chld=L|2" alt="QR Code"/>
+            </div>
+            <div class="mt-3 md:mt-6 text-center space-y-1">
+                <p class="font-headline uppercase text-[10px] sm:text-xs md:text-[14px] text-white font-black tracking-[0.1em] md:tracking-[0.3em] transition-all duration-500">Comparte tu momento</p>
+                <p class="font-body uppercase text-[7px] sm:text-[8px] md:text-[9px] text-gilt/60 font-bold tracking-[0.2em] md:tracking-[0.5em] transition-all duration-500">Escanea el Código QR</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- BRIDGE REDEFINIDO PARA PROYECCIÓN (FETCH) ---
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+ 
+        const urlParams = new URLSearchParams(window.location.search);
+        window.URL_EVENT_ID = urlParams.get('e') || 'General';
+
+        if (typeof google === 'undefined' || !google.script) {
+            window.google = { script: { run: (function(){
+                const buildProxy = (h = {}) => new Proxy({}, {
+                    get: (t, p) => {
+                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                        if (p === 'withFailureHandler') return (fh) => buildProxy({ ...h, failure: fh });
+                        return function(...args) {
+                            const id = "jp_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+                            window["cb_" + id] = (res) => {
+                                delete window["cb_" + id];
+                                if(res && res.error) {
+                                    if(h.failure) h.failure(res.error);
+                                } else {
+                                    if(h.success) h.success(res);
+                                }
+                            };
+                            const s = document.createElement("script");
+                            s.src = window.GAS_API_URL + "?callback=window.cb_" + id + "&method=" + p + "&args=" + encodeURIComponent(JSON.stringify(args));
+                            s.onerror = () => { if(h.failure) h.failure("Network error"); };
+                            document.body.appendChild(s);
+                            setTimeout(() => { if(s.parentNode) s.parentNode.removeChild(s); }, 15000);
+                        };
+                    }
+                });
+                return buildProxy();
+            })() } };
+        }
+
+        function refreshBranding() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data) return;
+                const event = data.eventName || "ShareMoments";
+                document.title = event + " - Projection";
+                
+                // Aplicar Imagen de Fondo si existe
+                let bgUrl = data.bgImageUrl || data.heroImageUrl;
+                if(bgUrl && bgUrl !== "null" && bgUrl.trim() !== "") {
+                    if (!bgUrl.startsWith('http')) bgUrl = `https://lh3.googleusercontent.com/d/${bgUrl}`;
+                    const customBg = document.createElement('div');
+                    customBg.style.position = 'fixed';
+                    customBg.style.inset = '0';
+                    customBg.style.backgroundImage = `url('${bgUrl}')`;
+                    customBg.style.backgroundSize = 'cover';
+                    customBg.style.backgroundPosition = 'center';
+                    customBg.style.opacity = '0.4';
+                    customBg.style.zIndex = '0';
+                    document.body.prepend(customBg);
+                }
+
+                // Actualizar QR
+                const qrImg = document.querySelector('.glass-qr img');
+                if(qrImg) {
+                    let qrUrl = data.qrUrl;
+                    if (qrUrl && qrUrl !== "null" && qrUrl.trim() !== "") {
+                        if (!qrUrl.startsWith('http')) qrUrl = `https://lh3.googleusercontent.com/d/${qrUrl}`;
+                        qrImg.src = qrUrl;
+                    } else {
+                        const url = window.location.origin + window.location.pathname.replace("projection/guests.html", "index.html") + "?e=" + window.URL_EVENT_ID;
+                        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+                    }
+                }
+
+                const hLogo = document.getElementById('header-logo');
+                if(hLogo) {
+                    let wmUrl = data.watermarkUrl;
+                    if (wmUrl && wmUrl !== "null" && wmUrl.trim() !== "") {
+                        if (!wmUrl.startsWith('http')) wmUrl = `https://lh3.googleusercontent.com/d/${wmUrl}`;
+                        hLogo.src = wmUrl;
+                        window.EVENT_WATERMARK = wmUrl;
+                    } else {
+                        hLogo.src = "https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_";
+                    }
+                }
+
+                // Inyección de fuentes dinámicas
+                const fontPrimary = data.fontPrimary || "Inter";
+                const fontTitle = data.fontTitle || "Epilogue";
+                
+                [fontPrimary, fontTitle].forEach(f => {
+                    if (f && f !== "Inter") {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = `https://fonts.googleapis.com/css2?family=${f.replace(/ /g, '+')}:wght@400;700;800;900&display=swap`;
+                        document.head.appendChild(link);
+                    }
+                });
+
+                document.body.style.fontFamily = `"${fontPrimary}", sans-serif`;
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .font-headline, h2, .ticker-content { font-family: "${fontTitle}", sans-serif !important; }
+                    .font-body { font-family: "${fontPrimary}", sans-serif !important; }
+                `;
+                document.head.appendChild(style);
+            }).getInitialData(window.URL_EVENT_ID);
+        }
+
+        let slidesData = [];
+        let currentIndex = 0;
+        let activeLayer = 'a';
+        
+        function loadSlides() {
+            google.script.run.withSuccessHandler(data => {
+                if (data && Array.isArray(data) && data.length > 0) {
+                    const firstLoad = slidesData.length === 0;
+                    slidesData = data;
+                    if (firstLoad) startSlideshow();
+                } else {
+                    document.getElementById('slides-wrapper').classList.add('hidden');
+                    document.getElementById('empty-projection').classList.remove('hidden');
+                }
+            }).getImagesByType('guests', window.URL_EVENT_ID);
+        }
+
+        function startSlideshow() {
+            renderSlide();
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % slidesData.length;
+                renderSlide();
+                if (currentIndex === 0) loadSlides(); 
+            }, 10000); // 10s para visualización óptima
+        }
+
+        function renderSlide() {
+            if (slidesData.length === 0) return;
+
+            const wrapper = document.getElementById('slides-wrapper');
+            const empty = document.getElementById('empty-projection');
+            
+            const nextLayer = activeLayer === 'a' ? 'b' : 'a';
+            const nextSlide = document.getElementById(`slide-${nextLayer}`);
+            const currentSlide = document.getElementById(`slide-${activeLayer}`);
+            const nextBg = document.getElementById(`bg-blur-${nextLayer}`);
+            const currentBg = document.getElementById(`bg-blur-${activeLayer}`);
+
+            const photo = slidesData[currentIndex];
+
+            // Pre-carga
+            const preloader = new Image();
+            preloader.src = photo.url;
+            preloader.onload = () => {
+                wrapper.classList.remove('hidden');
+                empty.classList.add('hidden');
+
+                nextSlide.innerHTML = `
+                    <div class="polaroid-main mx-auto inline-block polaroid-shadow rounded-sm relative">
+                        <!-- Watermark Dinámica en Polaroid -->
+                        <img class="absolute top-8 right-8 w-16 h-16 object-contain opacity-20 grayscale pointer-events-none" src="${window.EVENT_WATERMARK || 'https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_'}">
+                        
+                        <div class="overflow-hidden flex items-center justify-center">
+                            <img src="${photo.url}" class="max-w-[80vw] max-h-[65vh] object-contain">
+                        </div>
+                        <div class="mt-8 text-center px-4">
+                            <p class="font-handwritten text-5xl text-zinc-800">${photo.message || "Momento compartido"}</p>
+                            <p class="font-headline font-black text-[10px] uppercase tracking-[0.5em] text-zinc-400 mt-6">${photo.author || "Invitado"}</p>
+                        </div>
+                    </div>
+                `;
+                
+                nextBg.style.backgroundImage = `url('${photo.url}')`;
+                
+                // Transición Síncrona
+                nextSlide.classList.add('active');
+                nextBg.classList.add('active');
+                
+                if(currentSlide) currentSlide.classList.remove('active');
+                if(currentBg) currentBg.classList.remove('active');
+                
+                activeLayer = nextLayer;
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshBranding();
+            loadSlides();
+        });
+    </script>
+</body>
+</html>

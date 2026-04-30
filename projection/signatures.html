@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="h-full overflow-hidden" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ShareMoments | Cielo de Deseos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800;900&family=Great+Vibes&family=Inter:wght@300;400;600&display=swap" rel="stylesheet"/>
+    <style>
+        body { 
+            background: #000000; 
+            color: white; 
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            margin: 0; padding: 0;
+            height: 100vh;
+        }
+        .sky-bg {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            z-index: -1;
+        }
+        .star {
+            position: absolute; background: white; border-radius: 50%; opacity: 0.1; filter: blur(1px);
+        }
+        #hero-container {
+            position: fixed; inset: 0;
+            display: flex; items-center; justify-center;
+            z-index: 50;
+        }
+        .polaroid-hero {
+            position: absolute;
+            background: white;
+            padding: 2.5vh 2.5vh 10vh 2.5vh;
+            border-radius: 4px;
+            box-shadow: 0 100px 200px rgba(0,0,0,0.9);
+            width: auto;
+            max-height: 85vh;
+            max-width: 85vw;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-out;
+            pointer-events: none;
+            left: 50%; top: 50%;
+            display: flex; flex-direction: column;
+        }
+        .polaroid-hero.active { opacity: 1; }
+        .hero-img {
+            width: auto;
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 2px;
+            background: #f0f0f0;
+        }
+        .handwritten {
+            font-family: 'Great Vibes', cursive;
+            color: #222;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 3.5rem;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .author-tag {
+            position: absolute;
+            bottom: 25px; right: 35px;
+            font-size: 14px; font-weight: 900;
+            text-transform: uppercase; tracking-widest;
+            color: #D4AF37;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+    <div class="sky-bg"></div>
+    <div id="stars-container"></div>
+    <div id="hero-container"></div>
+
+    <header class="fixed top-12 left-12 z-[100] space-y-4">
+        <img id="header-logo" class="w-[220px] h-auto object-contain drop-shadow-xl" src="https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_" alt="Logo"/>
+        <div class="space-y-1">
+            <h1 class="text-[10px] font-black uppercase tracking-[0.5em] text-gilt/40">Cielo de Recuerdos</h1>
+            <p id="event-name" class="font-headline text-xs font-bold uppercase tracking-widest text-white/20">Sincronizando...</p>
+        </div>
+    </header>
+
+    <script>
+        window.GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        window.URL_EVENT_ID = urlParams.get('e') || 'General';
+
+        window.google = { script: { run: (function(){
+            const buildProxy = (h = {}) => new Proxy({}, {
+                get: (t, p) => {
+                    if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                    return function(...args) {
+                        const id = "jp_" + Date.now() + Math.round(Math.random()*1000);
+                        window[id] = (r) => { delete window[id]; if(h.success) h.success(r); };
+                        const s = document.createElement("script");
+                        s.src = window.GAS_API_URL + "?callback="+id+"&method="+p+"&args="+encodeURIComponent(JSON.stringify(args));
+                        document.body.appendChild(s);
+                    };
+                }
+            });
+            return buildProxy();
+        })() } };
+
+        let knownSignatures = [];
+        let currentIndex = -1;
+        const DEFAULT_LOGO = "https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generar estrellas
+            const container = document.getElementById('stars-container');
+            for(let i=0; i<150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                container.appendChild(star);
+            }
+
+            google.script.run.withSuccessHandler(data => {
+                if(data.fullEventTitle || data.eventName) document.getElementById('event-name').innerText = data.fullEventTitle || data.eventName;
+                const hLogo = document.getElementById('header-logo');
+                if(hLogo) {
+                    let wmUrl = data.watermarkUrl;
+                    if (wmUrl && wmUrl !== "null" && wmUrl.trim() !== "") {
+                        if (!wmUrl.startsWith('http')) wmUrl = `https://lh3.googleusercontent.com/d/${wmUrl}`;
+                        hLogo.src = wmUrl;
+                    } else {
+                        hLogo.src = DEFAULT_LOGO;
+                    }
+                }
+            }).getInitialData(window.URL_EVENT_ID);
+
+            syncSignatures();
+            setInterval(syncSignatures, 10000); // Sincronizar con Drive cada 10s
+            rotateHero();
+            setInterval(rotateHero, 6000); // Rotar foto cada 6s
+        });
+
+        function syncSignatures() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data || !Array.isArray(data) || data.length === 0) return;
+                knownSignatures = data.reverse(); // Últimas primero
+            }).getImages('signatures', window.URL_EVENT_ID);
+        }
+
+        function rotateHero() {
+            if (knownSignatures.length === 0) return;
+            
+            currentIndex++;
+            if (currentIndex >= knownSignatures.length) currentIndex = 0;
+            
+            showPolaroid(knownSignatures[currentIndex]);
+        }
+
+        function showPolaroid(wish) {
+            const container = document.getElementById('hero-container');
+            const oldHero = container.querySelector('.polaroid-hero');
+            
+            const newHero = document.createElement('div');
+            newHero.className = 'polaroid-hero';
+            
+            // Efecto de rotación tradicional (-5 a 5 grados)
+            const randomRot = Math.random() * 10 - 5;
+            newHero.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg) scale(0.8)`;
+            
+            const imgUrl = wish.url || DEFAULT_LOGO;
+            newHero.innerHTML = `
+                <img class="hero-img" src="${imgUrl}" alt="Selfie Hero">
+                <p class="handwritten">"${wish.mensaje || ""}"</p>
+                <span class="author-tag">${wish.autor}</span>
+            `;
+            
+            container.appendChild(newHero);
+            
+            // Fundido suave y entrada
+            setTimeout(() => {
+                if (oldHero) {
+                    oldHero.classList.remove('active');
+                    // Desplazar un poco el viejo al salir
+                    const oldRot = oldHero.style.transform.match(/rotate\((.*)deg\)/);
+                    const currentRot = oldRot ? oldRot[1] : 0;
+                    oldHero.style.transform = `translate(-50%, -50%) rotate(${currentRot}deg) scale(0.5)`;
+                }
+                
+                newHero.classList.add('active');
+                newHero.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg) scale(1)`;
+                
+                // Limpieza del anterior tras el fade
+                setTimeout(() => { if(oldHero) oldHero.remove(); }, 1600);
+            }, 100);
+        }
+    </script>
+</body>
+</html>

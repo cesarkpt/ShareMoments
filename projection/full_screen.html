@@ -1,0 +1,272 @@
+<!-- Proyección Evento - Optimización Full Screen -->
+<!DOCTYPE html>
+<html class="h-full overflow-hidden" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ShareMoments - Proyección</title>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "primary": "#000101", "background": "#000000", "gilt": "#D4AF37" },
+                    fontFamily: { "headline": ["Epilogue"], "body": ["Inter"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes pageEnter {
+            from { opacity: 0; filter: blur(10px); }
+            to { opacity: 1; filter: blur(0); }
+        }
+        .animate-page {
+            animation: pageEnter 2s ease-out forwards;
+        }
+        body { background-color: #000000; color: #f7f9fb; margin: 0; padding: 0; overflow: hidden; }
+        .obsidian-gradient { background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%); }
+        .polaroid-shadow { box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9); }
+        .glass-qr { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); }
+        .polaroid-slide {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            opacity: 0; transition: opacity 3s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .polaroid-slide.active { opacity: 1; z-index: 20; }
+
+        /* Ticker Animations */
+        .ticker-wrap {
+            overflow: hidden;
+            white-space: nowrap;
+            width: 100%;
+        }
+        .ticker-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker-scroll var(--ticker-speed, 15s) linear infinite;
+        }
+        @keyframes ticker-scroll {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body class="h-full w-full flex items-center justify-center obsidian-gradient select-none animate-page">
+    <header class="fixed top-12 left-12 z-50">
+        <img class="w-[180px] h-auto object-contain opacity-60" src="https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_" alt="Logo"/>
+    </header>
+
+    <!-- Botón de Cerrar (Navegación) -->
+    <button onclick="window.history.back()" class="fixed top-8 right-8 z-[200] w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-95 group">
+        <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <main class="relative w-full h-full flex items-center justify-center" id="projection-canvas">
+        <div id="slide-a" class="polaroid-slide"></div>
+        <div id="slide-b" class="polaroid-slide"></div>
+        
+        <!-- Estado de Carga Inicial -->
+        <div id="initial-state" class="text-white/20 font-black uppercase tracking-[1em] animate-pulse text-xs">
+            Sincronizando Galería...
+        </div>
+    </main>
+    <footer class="fixed bottom-4 md:bottom-16 left-4 md:left-16 z-50 transition-all duration-500">
+        <div class="glass-qr p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-white/10 shadow-2xl">
+            <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-48 md:h-48 lg:w-56 lg:h-56 bg-white flex items-center justify-center rounded-xl md:rounded-2xl p-2 md:p-4 shadow-inner mx-auto transition-all duration-500">
+                <img class="w-full h-full object-contain" src="https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=https://google.com&choe=UTF-8&chld=L|2" alt="QR Code"/>
+            </div>
+            <div class="mt-3 md:mt-6 text-center space-y-1">
+                <p class="font-headline uppercase text-[10px] sm:text-xs md:text-[14px] text-white font-black tracking-[0.1em] md:tracking-[0.3em] transition-all duration-500">Comparte tu momento</p>
+                <p class="font-body uppercase text-[7px] sm:text-[8px] md:text-[9px] text-gilt/60 font-bold tracking-[0.2em] md:tracking-[0.5em] transition-all duration-500">Escanea el Código QR</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // --- BRIDGE REDEFINIDO PARA PROYECCIÓN PRO (FETCH) ---
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw2JT10fX_oK1wtuq7BbkVNO6YllcQR4M4oFVAtatnvNZnoTnmGP63hL3unmt0gUAxRIA/exec";
+ 
+        const urlParams = new URLSearchParams(window.location.search);
+        window.URL_EVENT_ID = urlParams.get('e') || 'General';
+
+        if (typeof google === 'undefined' || !google.script) {
+            window.google = { script: { run: (function(){
+                const buildProxy = (h = {}) => new Proxy({}, {
+                    get: (t, p) => {
+                        if (p === 'withSuccessHandler') return (sh) => buildProxy({ ...h, success: sh });
+                        if (p === 'withFailureHandler') return (fh) => buildProxy({ ...h, failure: fh });
+                        return function(...args) {
+                            const id = "jp_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+                            window["cb_" + id] = (res) => {
+                                delete window["cb_" + id];
+                                if(res && res.error) {
+                                    if(h.failure) h.failure(res.error);
+                                } else {
+                                    if(h.success) h.success(res);
+                                }
+                            };
+                            const s = document.createElement("script");
+                            s.src = window.GAS_API_URL + "?callback=window.cb_" + id + "&method=" + p + "&args=" + encodeURIComponent(JSON.stringify(args));
+                            s.onerror = () => { if(h.failure) h.failure("Network error"); };
+                            document.body.appendChild(s);
+                            setTimeout(() => { if(s.parentNode) s.parentNode.removeChild(s); }, 15000);
+                        };
+                    }
+                });
+                return buildProxy();
+            })() } };
+        }
+
+        function refreshBranding() {
+            google.script.run.withSuccessHandler(data => {
+                if(!data) return;
+                window.EVENT_DEFAULTS = data;
+                const event = data.eventName || "ShareMoments";
+                document.title = event + " - Projection Pro";
+                
+                // Aplicar Imagen de Fondo si existe
+                let bgUrl = data.bgImageUrl || data.heroImageUrl;
+                if(bgUrl && bgUrl !== "null" && bgUrl.trim() !== "") {
+                    if (!bgUrl.startsWith('http')) bgUrl = `https://lh3.googleusercontent.com/d/${bgUrl}`;
+                    document.body.style.backgroundImage = `url('${bgUrl}')`;
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.classList.remove('obsidian-gradient');
+                }
+
+                // Actualizar QR si es necesario
+                const qrImg = document.querySelector('.glass-qr img');
+                if(qrImg) {
+                    let qrUrl = data.qrUrl;
+                    if (qrUrl && qrUrl !== "null" && qrUrl.trim() !== "") {
+                        if (!qrUrl.startsWith('http')) qrUrl = `https://lh3.googleusercontent.com/d/${qrUrl}`;
+                        qrImg.src = qrUrl;
+                    } else {
+                        const url = window.location.origin + window.location.pathname.replace("projection/full_screen.html", "index.html") + "?e=" + window.URL_EVENT_ID;
+                        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`;
+                    }
+                }
+                
+                const hLogo = document.querySelector('header img');
+                if(hLogo) {
+                    let wmUrl = data.watermarkUrl;
+                    if (wmUrl && wmUrl !== "null" && wmUrl.trim() !== "") {
+                        if (!wmUrl.startsWith('http')) wmUrl = `https://lh3.googleusercontent.com/d/${wmUrl}`;
+                        hLogo.src = wmUrl;
+                        window.EVENT_DEFAULTS.watermarkUrl = wmUrl; // Synchronize for Polaroid template
+                    } else {
+                        hLogo.src = "https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_";
+                    }
+                }
+
+                // Inyección de fuentes dinámicas
+                const fontPrimary = data.fontPrimary || "Inter";
+                const fontTitle = data.fontTitle || "Epilogue";
+                
+                [fontPrimary, fontTitle].forEach(f => {
+                    if (f && f !== "Inter") {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = `https://fonts.googleapis.com/css2?family=${f.replace(/ /g, '+')}:wght@400;700;800;900&display=swap`;
+                        document.head.appendChild(link);
+                    }
+                });
+
+                document.body.style.fontFamily = `"${fontPrimary}", sans-serif`;
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .font-headline, h2, .standard-title, .ticker-content { font-family: "${fontTitle}", sans-serif !important; }
+                    .font-body { font-family: "${fontPrimary}", sans-serif !important; }
+                `;
+                document.head.appendChild(style);
+            }).getInitialData(window.URL_EVENT_ID);
+        }
+
+        let proSlides = [];
+        let proIndex = 0;
+        let activeSlide = 'a';
+        const galleryType = urlParams.get('type') || 'pro';
+
+        function loadProSlides() {
+            google.script.run.withSuccessHandler(data => {
+                if(data && Array.isArray(data) && data.length > 0) {
+                    const firstLoad = proSlides.length === 0;
+                    proSlides = data;
+                    if(firstLoad) {
+                        document.getElementById('initial-state').classList.add('hidden');
+                        startProShow();
+                    }
+                }
+            }).getImagesByType(galleryType, window.URL_EVENT_ID);
+        }
+
+        function startProShow() {
+            renderProSlide();
+            setInterval(() => {
+                proIndex = (proIndex + 1) % proSlides.length;
+                renderProSlide();
+                if(proIndex === 0) loadProSlides();
+            }, 10000); // 10s para Pro
+        }
+
+        function renderProSlide() {
+            if(proSlides.length === 0) return;
+            const imgData = proSlides[proIndex];
+            
+            const nextSlide = activeSlide === 'a' ? 'b' : 'a';
+            const nextEl = document.getElementById(`slide-${nextSlide}`);
+            const currentEl = document.getElementById(`slide-${activeSlide}`);
+
+            // Pre-carga real de la imagen
+            const imgPreloader = new Image();
+            imgPreloader.src = imgData.url;
+            imgPreloader.onload = () => {
+                const defaults = window.EVENT_DEFAULTS || {};
+                const tickerHtml = (defaults.isTickerEnabled && defaults.tickerText) ? `
+                    <div class="mt-4 bg-obsidian border-t border-gilt/30 py-3 rounded-b-xl overflow-hidden ticker-wrap">
+                        <div class="ticker-content font-headline text-gilt text-lg font-black uppercase tracking-widest italic">
+                            ${defaults.tickerText} &nbsp;&nbsp; • &nbsp;&nbsp; ${defaults.tickerText} &nbsp;&nbsp; • &nbsp;&nbsp; ${defaults.tickerText}
+                        </div>
+                    </div>
+                ` : "";
+
+                const authorText = (galleryType === 'Selfie') ? (imgData.autor || "Invitado") : (imgData.autor || "Evento Oficial");
+                const subtitleText = (galleryType === 'Selfie') ? (imgData.mensaje || "Dejando su huella") : "Capturando la excelencia";
+
+                nextEl.innerHTML = `
+                    <div class="flex flex-col max-w-[90vw] max-h-[90vh]">
+                        <div class="bg-white p-6 pb-12 polaroid-shadow rounded-sm transition-all duration-1000 relative inline-block mx-auto">
+                            <!-- Watermark Dinámica en Polaroid -->
+                            <img class="absolute top-8 right-8 w-16 h-16 object-contain opacity-20 grayscale pointer-events-none" src="${defaults.watermarkUrl || 'https://lh3.googleusercontent.com/d/107oIKB60K24jzx6eJRHehMptw1J1vpS_'}">
+                            
+                            <div class="overflow-hidden shadow-inner flex items-center justify-center">
+                                <img class="max-w-[80vw] max-h-[65vh] object-contain" src="${imgData.url}" />
+                            </div>
+                            <div class="mt-8 text-center">
+                                <h2 class="font-headline text-primary text-4xl font-extrabold uppercase tracking-tighter">${authorText}</h2>
+                                <p class="font-body text-slate-400 mt-2 text-[14px] leading-relaxed italic max-w-lg mx-auto opacity-80">"${subtitleText}"</p>
+                            </div>
+                        </div>
+                        ${tickerHtml}
+                    </div>
+                `;
+                
+                // Switch de visibilidad (Cross-fade)
+                nextEl.classList.add('active');
+                if(currentEl) currentEl.classList.remove('active');
+                activeSlide = nextSlide;
+            };
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshBranding();
+            loadProSlides();
+        });
+    </script>
+</footer>
+</body>
+</html>
