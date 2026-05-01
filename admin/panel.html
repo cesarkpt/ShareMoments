@@ -423,34 +423,29 @@
         const ADMIN_PASS = "Mauro3dp*";
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyW0URXuzPHzkIObvjVXMtTREO0fHEt3ZWvtjqFG8RHa61WgvH9b-CFHReWytqf5jwE4A/exec"; 
 
-        // 1. ESCUCHA DE RESPUESTAS (Desde Iframe o JSONP)
-        const pendingRequests = new Map();
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.id && pendingRequests.has(event.data.id)) {
-                const { resolve, reject } = pendingRequests.get(event.data.id);
-                pendingRequests.delete(event.data.id);
-                if (event.data.error) reject(event.data.error);
-                else resolve(event.data.result);
-            }
-        });
-
+        // Motor JSONP (mismo patrón que welcome.html / selector.html / upload.html)
         function callGAS(method, args) {
             return new Promise((resolve, reject) => {
-                const reqId = 'req_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                const id = 'jp_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
                 const timeout = setTimeout(() => {
-                    pendingRequests.delete(reqId);
-                    reject(new Error('Timeout: El servidor no respondió. Verifica tu conexión y permisos.'));
+                    delete window['cb_' + id];
+                    reject(new Error('Timeout: El servidor no respondió.'));
                 }, 15000);
 
-                pendingRequests.set(reqId, { 
-                    resolve: (res) => { clearTimeout(timeout); resolve(res); },
-                    reject: (err) => { clearTimeout(timeout); reject(err); }
-                });
+                window['cb_' + id] = (res) => {
+                    clearTimeout(timeout);
+                    delete window['cb_' + id];
+                    if (res && res.error) reject(res.error);
+                    else resolve(res);
+                };
 
-                // Motor de Comunicación Bridge (Iframe)
-                const bridge = document.getElementById('gas-bridge');
-                const bridgeUrl = `${GAS_API_URL}?view=bridge&method=${method}&reqId=${reqId}&args=${encodeURIComponent(JSON.stringify(args || []))}`;
-                bridge.src = bridgeUrl;
+                const s = document.createElement('script');
+                s.src = GAS_API_URL + '?callback=window.cb_' + id +
+                        '&method=' + method +
+                        '&args=' + encodeURIComponent(JSON.stringify(args || []));
+                s.onerror = () => { clearTimeout(timeout); delete window['cb_' + id]; reject(new Error('Network error')); };
+                document.body.appendChild(s);
+                setTimeout(() => { if (s.parentNode) s.parentNode.removeChild(s); }, 16000);
             });
         }
 
@@ -616,28 +611,19 @@
 
         async function loadDashboard() {
             switchTab('timer');
-            try {
-                const data = await callGAS('getPerfilesFull', [ADMIN_PASS]);
-                if(data && data.perfiles) {
-                    globalPerfiles = data.perfiles;
-                    const active = data.activo || "General";
-                    const selector = document.getElementById('event-selector');
-                    selector.innerHTML = Object.keys(globalPerfiles).map(id =>
-                        `<option value="${id}" ${id === active ? 'selected' : ''}>${globalPerfiles[id].eventName || id}</option>`
-                    ).join('');
-                    document.getElementById('loading-overlay').style.opacity = '0';
-                    setTimeout(() => { try { document.getElementById('loading-overlay').remove(); } catch(e) {} }, 500);
-                    switchEvent();
-                } else {
-                    throw new Error('Sin datos de perfiles en respuesta');
-                }
-            } catch(err) {
-                console.error('loadDashboard error:', err);
-                try { document.getElementById('loading-overlay').style.opacity = '0'; } catch(e) {}
-                setTimeout(() => { try { document.getElementById('loading-overlay').remove(); } catch(e) {} }, 500);
-                document.getElementById('active-event-indicator').innerText = '\u274C ' + err.message;
-                alert('Error al cargar panel:\n' + err.message);
-            }
+            // Light: evento único, leemos con getInitialData (sin contraseña, funciona via JSONP)
+            const urlP = new URLSearchParams(window.location.search);
+            activeEventId = urlP.get('id') || urlP.get('e') || localStorage.getItem('lastEventId') || 'General';
+            if (activeEventId.toLowerCase() === 'event' || activeEventId === '') activeEventId = 'General';
+
+            // Rellenar selector con el evento activo (un solo evento en versión Light)
+            const selector = document.getElementById('event-selector');
+            if (selector) selector.innerHTML = `<option value="${activeEventId}" selected>${activeEventId}</option>`;
+
+            document.getElementById('loading-overlay').style.opacity = '0';
+            setTimeout(() => { try { document.getElementById('loading-overlay').remove(); } catch(e) {} }, 500);
+
+            switchEvent();
         }
 
         async function repairSharing() {
@@ -656,30 +642,22 @@
         }
 
         async function forceSyncProfiles() {
-            document.getElementById('sync-btn').classList.add('animate-spin');
+            const btn = document.getElementById('sync-btn');
+            if (btn) btn.classList.add('animate-spin');
             try {
-                const data = await callGAS('discoverAndSyncEvents', [ADMIN_PASS]);
-                document.getElementById('sync-btn').classList.remove('animate-spin');
-                if(data && data.perfiles) {
-                    globalPerfiles = data.perfiles;
-                    const active = data.activo || "General";
-                    const selector = document.getElementById('event-selector');
-                    selector.innerHTML = Object.keys(globalPerfiles).map(id =>
-                        `<option value="${id}" ${id === active ? 'selected' : ''}>${globalPerfiles[id].eventName || id}</option>`).join('');
-                    switchEvent();
-                }
-            } catch(err) {
-                document.getElementById('sync-btn').classList.remove('animate-spin');
-                alert("Error de Sincronización: " + err);
+                await switchEvent();
+            } finally {
+                if (btn) btn.classList.remove('animate-spin');
             }
         }
 
         async function switchEvent() {
-            const id = document.getElementById('event-selector').value;
+            const id = document.getElementById('event-selector') ? document.getElementById('event-selector').value : activeEventId;
             activeEventId = id;
-            document.getElementById('active-event-indicator').innerText = "Sincronizando...";
+            document.getElementById('active-event-indicator').innerText = 'Sincronizando...';
             try {
-                const profile = await callGAS('getEventoExtraDetails', [ADMIN_PASS, id]);
+                // Light: usa getInitialData (sin contraseña, JSONP compatible)
+                const profile = await callGAS('getInitialData', [id]);
                 document.getElementById('active-event-indicator').innerText = profile.fullEventTitle || profile.eventName || id;
                 document.getElementById('input-full-title').value = profile.fullEventTitle || "";
                 document.getElementById('input-public-title').value = profile.eventName || "";
@@ -743,28 +721,9 @@
 
                 updateTimerUI(profile);
                 updateMockup();
-
-                // --- SEGUNDO PASO: Sincronización Forzada de Carpeta (G_ASSET__BRANDING) ---
-                callGAS('syncEventBranding', [id]).then(res => {
-                    if (res && res.data) {
-                        const fresh = res.data;
-                        const updateImg = (key, imgId, placeholderId) => {
-                            const url = fixUrl(fresh[key]);
-                            if (url) {
-                                document.getElementById(imgId).src = url;
-                                document.getElementById(imgId).classList.remove('hidden');
-                                if(document.getElementById(placeholderId)) document.getElementById(placeholderId).classList.add('hidden');
-                            }
-                        };
-                        updateImg('heroImageUrl', 'adminHeroPreview', 'hero-placeholder');
-                        updateImg('bgImageUrl', 'adminBgPreview', 'bg-placeholder');
-                        updateImg('watermarkUrl', 'adminWatermarkPreview', 'wm-placeholder');
-                        updateImg('tickerUrl', 'adminTickerPreview', 'ticker-placeholder');
-                    }
-                });
             } catch(err) {
-                document.getElementById('active-event-indicator').innerText = "Error al cargar";
-                console.error("switchEvent error:", err);
+                document.getElementById('active-event-indicator').innerText = 'Error al cargar';
+                console.error('switchEvent error:', err);
             }
         }
 
@@ -772,10 +731,19 @@
             const h = document.getElementById('input-h-manual').value || 0;
             const m = document.getElementById('input-m-manual').value || 0;
             try {
-                const res = await callGAS('controlTimer', [ADMIN_PASS, activeEventId, action, (parseInt(h)*60 + parseInt(m))]);
-                if(res && res.success) updateTimerUI(res.profile);
+                // Timer: usa fetch no-cors (fire & forward) para escritura
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ method: 'controlTimer', args: [ADMIN_PASS, activeEventId, action, (parseInt(h)*60 + parseInt(m))] })
+                });
+                // Leer estado actualizado con JSONP
+                await new Promise(r => setTimeout(r, 2000));
+                const res = await callGAS('getInitialData', [activeEventId]);
+                if (res) updateTimerUI(res);
             } catch(err) {
-                alert("Error en timer: " + err);
+                alert('Error en timer: ' + err);
             }
         }
 
@@ -921,8 +889,7 @@
         }
 
         function nuevoEvento() {
-            const n = prompt("ID del Nuevo Evento (Ej: BodaJuanYMaria):");
-            if(n) callGAS('crearNuevoEvento', [ADMIN_PASS, n]).then(() => location.reload());
+            alert('La versión Light es de un solo evento. Para múltiples eventos, usa la versión completa.');
         }
 
         function exitAdmin() {
