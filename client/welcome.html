@@ -87,18 +87,17 @@
             <h1 id="event-title-display" class="font-headline font-black text-2xl tracking-tighter text-white uppercase">...</h1>
             <div class="space-y-2 max-w-[300px] mx-auto">
                 <p class="text-white text-sm font-bold tracking-tight">¡Bienvenido a la Experiencia! 👋</p>
-                <p class="text-white/40 text-[9px] font-medium leading-relaxed uppercase tracking-widest">Regístrate para comenzar</p>
+                <p class="text-white/40 text-[9px] font-medium leading-relaxed uppercase tracking-widest">¡Comparte tus momentos!</p>
             </div>
         </header>
 
         <div class="w-full space-y-4">
             <div class="space-y-3 w-full animate-page" style="animation-delay: 0.3s">
                 <input id="guest-name" type="text" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center text-white placeholder-white/30 outline-none transition-all focus:border-gilt text-sm font-black uppercase tracking-widest" placeholder="TU NOMBRE (OPCIONAL)">
-                <textarea id="guest-message" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-center text-white placeholder-white/30 outline-none transition-all focus:border-gilt text-[10px] font-medium resize-none h-20 uppercase tracking-widest" placeholder="MENSAJE PARA EL LIBRO"></textarea>
             </div>
             
             <button onclick="handleEntry()" id="btn-continue" class="w-full py-5 rounded-2xl shadow-2xl premium-cta font-black uppercase tracking-[0.3em] text-[10px]">
-                Sincronizar y Entrar
+                Entrar al Evento
             </button>
         </div>
     </main>
@@ -110,29 +109,12 @@
             <div class="absolute inset-0 border-4 border-gilt rounded-full animate-spin border-t-transparent"></div>
         </div>
         <div class="text-center space-y-2">
-            <h2 class="text-xs font-black uppercase tracking-[0.4em] text-white">Firmando Libro...</h2>
+            <h2 class="text-xs font-black uppercase tracking-[0.4em] text-white">Entrando al Evento...</h2>
             <p class="text-[8px] text-white/30 uppercase tracking-[0.2em]">Preparando tu experiencia personalizada</p>
         </div>
     </div>
 
-    <!-- MODAL ADMIN GATE -->
-    <div id="admin-gate-modal" class="fixed inset-0 z-[1100] bg-black/90 backdrop-blur-xl hidden p-6 transition-all duration-300">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-white/20 w-full max-w-[280px] rounded-[3rem] p-10 space-y-8 shadow-2xl flex flex-col items-center overflow-hidden" style="background: var(--bg-color, #0A0A0A)">
-            <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
-            <div class="space-y-2 text-center relative">
-                <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2">
-                    <span class="material-icons text-white/80">lock_open</span>
-                </div>
-                <h3 class="text-white font-black text-xs uppercase tracking-[0.4em]">Acceso Admin</h3>
-                <p class="text-white/40 text-[8px] font-bold uppercase tracking-widest italic pt-1 text-center">Solo Organizadores</p>
-            </div>
-            <input id="admin-pass-input" type="password" placeholder="Contraseña..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-center text-white outline-none focus:border-gilt/50 transition-all"/>
-            <div class="grid grid-cols-1 gap-3 w-full">
-                <button onclick="verifyAdminAccess()" class="w-full py-4 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-[0.4em] active:scale-95 transition-all shadow-xl">Entrar</button>
-                <button onclick="toggleAdminGate(false)" class="w-full text-[8px] uppercase tracking-widest font-black text-white/20 hover:text-white transition-colors">Cancelar</button>
-            </div>
-        </div>
-    </div>
+    <!-- MODAL ADMIN GATE (Light: acceso directo sin contraseña) -->
 
     <!-- Modal Soporte -->
     <div id="support-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md hidden p-6 transition-all duration-300">
@@ -359,34 +341,22 @@
 
         async function handleEntry() {
             let name = document.getElementById('guest-name').value.trim();
-            const message = document.getElementById('guest-message').value.trim();
             const selfieInput = document.getElementById('selfie-input');
             const btn = document.getElementById('btn-continue');
             const loading = document.getElementById('loading-modal');
 
-            if (!name) name = "Anónimo";
+            if (!name) name = "Invitado";
             
             loading.classList.remove('hidden');
             loading.classList.add('flex');
             btn.disabled = true;
 
-            // Guardar nombre en localStorage
+            // Guardar nombre en localStorage (versión Light: sin libro de firmas)
             localStorage.setItem('guestName', name);
             localStorage.setItem('termsAccepted', 'true');
 
             try {
-                // 1. REGISTRAR VISITA (FIRE & FORWARD)
-                await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({
-                        method: 'registrarVisita',
-                        args: [name, message, window.URL_EVENT_ID]
-                    })
-                });
-
-                // 2. SUBIR SELFIE SI EXISTE (FIRE & FORWARD)
+                // SUBIR SELFIE SI EXISTE (FIRE & FORWARD)
                 if (selfieInput.files && selfieInput.files[0]) {
                     const reader = new FileReader();
                     reader.onload = async function(e) {
@@ -397,20 +367,17 @@
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({
                                 method: 'uploadFile',
-                                args: [base64, `SELFIE_${Date.now()}.jpg`, name, message, null, "Selfie", null, window.URL_EVENT_ID]
+                                args: [base64, `SELFIE_${Date.now()}.jpg`, name, "", null, "Selfie", null, window.URL_EVENT_ID]
                             })
                         });
-                        // Redirigir después de iniciar la subida (no-cors no espera respuesta)
                         location.href = `selector.html?e=${window.URL_EVENT_ID}`;
                     };
                     reader.readAsDataURL(selfieInput.files[0]);
                 } else {
-                    // Redirigir si no hay foto
                     location.href = `selector.html?e=${window.URL_EVENT_ID}`;
                 }
             } catch (err) {
                 console.error("Entry error:", err);
-                // Si falla el fetch por alguna razón externa, intentamos entrar igual
                 location.href = `selector.html?e=${window.URL_EVENT_ID}`;
             }
         }
@@ -510,15 +477,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // VIP SKIP - Solo si no estamos en modo firma
-            const urlParams = new URLSearchParams(window.location.search);
-            const isSignatureMode = urlParams.get('mode') === 'signature';
-            
-            if (localStorage.getItem('guestName') && !isSignatureMode) {
-                window.location.replace('selector.html' + window.location.search);
-                return;
-            }
-
+            // Light: No hay VIP skip, todos pasan por welcome para registrar nombre
             callGAS('getInitialData', [window.URL_EVENT_ID]).then(applyBranding);
         });
 
@@ -540,12 +499,12 @@
             }
         };
 
-        window.toggleAdminGate = (s) => {
-            if(s) window.verifyAdminAccess();
+        // Light: acceso directo al panel sin contraseña
+        window.toggleAdminGate = () => {
+            location.href = '../admin/panel.html?id=' + window.URL_EVENT_ID;
         };
-
         window.verifyAdminAccess = () => {
-             location.href = '../admin/panel.html?id=' + window.URL_EVENT_ID;
+            location.href = '../admin/panel.html?id=' + window.URL_EVENT_ID;
         };
 
         window.sendSupportWhatsApp = () => {
